@@ -1,8 +1,8 @@
 // contrato para o repositorio do produto
-import { Product } from "../entities/Product";
+import { Product } from "../entities/product.entity";
 
 export interface ProductRepository {
-    save(material: Product): Promise<void>;
+    create(material: Product): Promise<void>;
     findById(id: string): Promise<Product | null>;
     findByName(name: string): Promise<Product[]>;
     findBySku(sku: string): Promise<Product[]>;
@@ -11,4 +11,5 @@ export interface ProductRepository {
     findByMaterial(material: string): Promise<Product[]>;
     findByModel(model: string): Promise<Product[]>;
     findAll(): Promise<Product[]>;
+    save(material: Product): Promise<void>;
 }

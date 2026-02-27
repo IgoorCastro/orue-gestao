@@ -1,5 +1,5 @@
 // contrato do repositorio de cores
-import { Color } from "../entities/Color";
+import { Color } from "../entities/color.entity";
 
 export interface ColorRepository {
     save(color: Color): Promise<void>;

@@ -1,5 +1,5 @@
 // entidade de tamanho
-import { ItemSize } from "../enums/ItemSize.enum";
+import { ItemSize } from "../enums/product-size.enum";
 
 export class Size {
     constructor(

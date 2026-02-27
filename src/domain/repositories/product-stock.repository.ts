@@ -1,5 +1,5 @@
 // contrato do repositorio de produto no estoque
-import { ItemStock } from "../entities/ItemStock";
+import { ItemStock } from "../entities/product-stock.entity";
 
 // repositorio do Item no estoque
 export interface ItemStockRepository {

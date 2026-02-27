@@ -1,5 +1,5 @@
 // contrato para o repositorio da loja
-import { Store } from "../entities/Store";
+import { Store } from "../entities/store.entity";
 
 export interface StoreRepository {
     save(material: Store): Promise<void>;

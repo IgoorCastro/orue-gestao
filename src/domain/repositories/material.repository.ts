@@ -1,5 +1,5 @@
 // contrato do repositorio do material do produto
-import { Material } from "../entities/Material";
+import { Material } from "../entities/material.entity";
 
 export interface MaterialRepository {
     save(material: Material): Promise<void>;

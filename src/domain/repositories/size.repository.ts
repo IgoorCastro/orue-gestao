@@ -1,5 +1,5 @@
 // contrato para o repositorio de tamano
-import { Size } from "../entities/Size";
+import { Size } from "../entities/size.entity";
 
 export interface SizeRepository {
     save(material: Size): Promise<void>;
