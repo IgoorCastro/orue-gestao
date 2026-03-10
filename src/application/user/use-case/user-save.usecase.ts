@@ -1,7 +1,7 @@
 import { UserRepository } from "@/src/domain/repositories/user.repository";
 import { SaveUserDto } from "../dto/user-save.dto";
 
-export class UpdateUserUseCase {
+export class UpdateUserUseCaseUseCase {
     constructor(
         private userRepository: UserRepository,
     ) {}

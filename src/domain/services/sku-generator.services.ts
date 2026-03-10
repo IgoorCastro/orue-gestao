@@ -6,6 +6,6 @@ export interface GenerateSkuInput {
     size: string;
 }
 
-export interface SkuGenerator {
+export interface SkuGeneratorService {
     generate(input: GenerateSkuInput): string;
 }

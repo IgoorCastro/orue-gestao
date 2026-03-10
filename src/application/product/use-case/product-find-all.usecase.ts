@@ -6,9 +6,9 @@ export class FindProductAllUseCase {
     ) { }
 
     async execute() {
-        const findedUser = await this.productRepository.findAll();
-        if(!findedUser) throw new Error("User not found");
+        const findedProduct = await this.productRepository.findAll();
+        if(!findedProduct) throw new Error("User not found");
 
-        return findedUser;
+        return findedProduct;
     }
 }

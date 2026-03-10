@@ -2,6 +2,9 @@
 // barcode podera sera adicionado
 // em um segundo momento
 
+import { DefaultSkuGenerator } from "../services/default-sku-generator";
+import capitalizeFirstLetter from "../utils/capitalize-first-letter";
+
 type ProductProps = {
     id: string, sku: string, name: string,
     price: number, colorId: string, sizeId: string,
@@ -11,7 +14,7 @@ type ProductProps = {
 
 export class Product {
     public readonly _id: string;
-    private readonly _sku: string;
+    private _sku: string;
     private _name: string;
     private _price: number;
     private _colorId: string;
@@ -20,6 +23,7 @@ export class Product {
     private _modelId: string;
     private _mlProductId?: string; // vínculo futuro com ML
     private _barcode?: string;
+    private SkuGenerator = new DefaultSkuGenerator();
 
     constructor( props: ProductProps ) {
         if(!props.id) throw new Error("Id cannot be empty")
@@ -33,8 +37,14 @@ export class Product {
         this.validateSku(props.sku);
 
         this._id = props.id;
-        this._sku = props.sku;
-        this._name = props.name;
+        this._sku = this.SkuGenerator.generate({
+            name: props.name,
+            model: props.modelId,
+            material: props.materialId,
+            size: props.sizeId,
+            color: props.colorId,
+        });
+        this._name = capitalizeFirstLetter(props.name);
         this._price = props.price;
         this._colorId = props.colorId;
         this._sizeId = props.sizeId;
@@ -50,6 +60,24 @@ export class Product {
 
     get sku(): string {
         return this._sku;
+    }
+
+    changeSku(sku: string): void {
+        this.validateSku(sku);
+        this._sku = sku;
+        // this.validateName(this._name);
+        // this.validateModel(this._modelId);
+        // this.validateMaterial(this._materialId);
+        // this.validateSize(this._sizeId);
+        // this.validateColor(this._colorId);
+
+        // this._sku = this.SkuGenerator.generate({
+        //     name: this._name,
+        //     model: this._modelId,
+        //     material: this._materialId,
+        //     size: this._sizeId,
+        //     color: this._colorId,
+        // })
     }
 
     get name(): string {

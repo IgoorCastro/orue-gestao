@@ -1,7 +1,7 @@
 import { UserRepository } from "@/src/domain/repositories/user.repository";
 import { UuidGenerator } from "@/src/domain/services/uuid-generator.services";
 
-export class FindUserByName {
+export class FindUserByNameUseCase {
     constructor(
         private userRepository: UserRepository,
     ) { }

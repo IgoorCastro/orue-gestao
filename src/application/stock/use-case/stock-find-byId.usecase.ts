@@ -1,7 +1,7 @@
 import { StockRepository } from "@/src/domain/repositories/stock.repository";
 import { UuidGenerator } from "@/src/domain/services/uuid-generator.services";
 
-export class FindStockById {
+export class FindStockByIdUseCase {
     constructor(
         private stockRepository: StockRepository,
         private uuid: UuidGenerator,

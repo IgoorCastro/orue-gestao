@@ -1,6 +1,14 @@
 // entidade do usuario
 import { UserRole } from "../enums/user-role.enum";
 
+type UserProps = {
+    id: string, 
+    name: string,
+    role: UserRole, 
+    isActive: boolean, 
+    createdAt: Date,
+} 
+
 export class User {
     private readonly _id: string;
     private readonly _createdAt: Date;
@@ -8,17 +16,17 @@ export class User {
     private _role: UserRole;
     private _isActive: boolean;
 
-    constructor(id: string, name: string, role: UserRole, isActive: boolean = true, createdAt: Date ) {       
-        if(!id) throw new Error("Id cannot be empty");
-        if(!createdAt) throw new Error("Id cannot be empty");
-        this.validateRole(role);
-        this.validateName(name);
+    constructor(input: UserProps) {       
+        if(!input.id) throw new Error("Id cannot be empty");
+        if(!input.createdAt) throw new Error("Id cannot be empty");
+        this.validateRole(input.role);
+        this.validateName(input.name);
 
-        this._id = id;
-        this._name = name;
-        this._role = role;
-        this._isActive = isActive;
-        this._createdAt = createdAt;
+        this._id = input.id;
+        this._name = input.name;
+        this._role = input.role;
+        this._isActive = input.isActive;
+        this._createdAt = input.createdAt;
     }
 
     get id(): string {

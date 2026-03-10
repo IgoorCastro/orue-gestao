@@ -2,8 +2,9 @@
 import { Material } from "../entities/material.entity";
 
 export interface MaterialRepository {
-    save(material: Material): Promise<void>;
+    create(material: Material): Promise<void>;
     findById(id: string): Promise<Material | null>;
-    findByMaterial(material: string): Promise<Material[]>;
+    findByName(name: string): Promise<Material[]>;
     findAll(): Promise<Material[]>;
+    save(material: Material): Promise<void>;
 }

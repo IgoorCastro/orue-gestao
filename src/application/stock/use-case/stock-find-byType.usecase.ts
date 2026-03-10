@@ -1,7 +1,7 @@
 import { StockType } from "@/src/domain/enums/stock-type.enum";
 import { StockRepository } from "@/src/domain/repositories/stock.repository";
 
-export class FindStockById {
+export class FindStockByIdUseCase {
     constructor(
         private stockRepository: StockRepository,
     ) { }

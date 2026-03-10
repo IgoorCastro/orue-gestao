@@ -69,7 +69,7 @@ export class Stock {
 
     private validateType(type: StockType, storeId?: string): void {
         // apenas 2 tipos de estoque
-        if(Object.values(StockType).includes(type)) throw new Error("Stock type is invalid");
+        if(!Object.values(StockType).includes(type)) throw new Error("Stock type is invalid");
         // stoque de loja precisa ter a referencia da mesma
         if(type === StockType.STORE && !storeId) throw new Error("Store stock must have storeId")
     }

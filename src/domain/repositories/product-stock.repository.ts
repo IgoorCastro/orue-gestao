@@ -1,11 +1,13 @@
 // contrato do repositorio de produto no estoque
-import { ItemStock } from "../entities/product-stock.entity";
+import { ProductStock } from "../entities/product-stock.entity";
 
 // repositorio do Item no estoque
-export interface ItemStockRepository {
-    save(item: ItemStock): Promise<void>;
-    findById(id: string): Promise<ItemStock | null>;
-    findByStockId(stockId: string): Promise<ItemStock[]>;
-    findByProductId(productId: string): Promise<ItemStock | null>;
-    findAll(): Promise<ItemStock[]>;
+export interface ProductStockRepository {
+    create(item: ProductStock): Promise<void>;
+    findById(id: string): Promise<ProductStock | null>;
+    findByProductAndStockId(stockId: string, productId: string): Promise<ProductStock| null>;
+    findByProductId(productId: string): Promise<ProductStock | null>;
+    findByStockId(stockId: string): Promise<ProductStock[]>;
+    findAll(): Promise<ProductStock[]>;
+    save(item: ProductStock): Promise<void>;
 }

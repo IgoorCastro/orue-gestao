@@ -1,6 +1,6 @@
 import { StockRepository } from "@/src/domain/repositories/stock.repository";
 
-export class FindStockAll {
+export class FindStockAllUseCase {
     constructor(
         private stockRepository: StockRepository
     ) { }

@@ -7,6 +7,7 @@ import { ColorRepository } from "@/src/domain/repositories/color.repository";
 import { SizeRepository } from "@/src/domain/repositories/size.repository";
 import { MaterialRepository } from "@/src/domain/repositories/material.repository";
 import { ModelRepository } from "@/src/domain/repositories/model.repository";
+import { SkuGeneratorService } from "@/src/domain/services/sku-generator.services";
 
 export class CreateProductUseCase {
     constructor(
@@ -16,7 +17,7 @@ export class CreateProductUseCase {
         private materialRepository: MaterialRepository,
         private modelRepository: ModelRepository,
         private uuid: UuidGenerator,
-        private sku: DefaultSkuGenerator,
+        private sku: SkuGeneratorService,
     ) { }
 
     async execute(input: CreateProductInputDto): Promise<CreateProductOutputDto> {
@@ -35,10 +36,10 @@ export class CreateProductUseCase {
             id: this.uuid.generate(),
             sku: this.sku.generate({
                 name,
-                model: model.model,
-                material: material.material,
+                model: model.name,
+                material: material.name,
                 size: size.size,
-                color: color.color,
+                color: color.name,
             }),
             name,
             price,
