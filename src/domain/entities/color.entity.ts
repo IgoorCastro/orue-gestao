@@ -1,4 +1,5 @@
 import capitalizeFirstLetter from "../utils/capitalize-first-letter";
+import normalizeName from "../utils/normalize-name";
 
 // entidade de cores do produto (amarelo, verde, azul..)
 type ColorProps = Readonly<{
@@ -18,11 +19,12 @@ export class Color {
 
     // constructor é interno
     private constructor({ id, name, createdAt, updatedAt, deletedAt }: ColorProps) {
-        if (!id || id.trim().length === 0) throw new Error("Id cannot be empty");
-        this.validateName(name);
+        if (!id?.trim()) throw new Error("Id cannot be empty");
+        // manter o validate para testar o restore!
+        Color.validateName(name);
 
         this._id = id;
-        this._name = capitalizeFirstLetter(name);
+        this._name = name;
         this._createdAt = createdAt;
         this._updatedAt = updatedAt;
         this._deletedAt = deletedAt;
@@ -34,7 +36,7 @@ export class Color {
 
         return new Color({
             id: props.id,
-            name: props.name,
+            name: Color.formatName(props.name),
             createdAt: now,
             updatedAt: now,
             deletedAt: undefined,
@@ -55,11 +57,9 @@ export class Color {
     }
 
     rename(name: string): void {
-        const formattedName = capitalizeFirstLetter(name);
-
+        const formattedName = Color.formatName(name);
         if (this._name === formattedName) return;
 
-        this.validateName(name);
         this._name = formattedName;
         this.touch();
     }
@@ -86,14 +86,21 @@ export class Color {
 
     // reativar
     restoreDeleted(): void {
+        if(!this._deletedAt) return;
+
         this._deletedAt = undefined;
         this.touch();
     }
 
-    private validateName(name: string): void {
-        if (!name || name.trim().length === 0) {
-            throw new Error("Color name cannot be empty");
-        }
+    private static validateName(name: string) {
+        if(!name?.trim()) throw new Error("Color cannot be empty");
+    }
+
+    private static formatName(name: string): string {
+        const normalized = normalizeName(name);
+        Color.validateName(normalized);
+
+        return capitalizeFirstLetter(normalized);
     }
 
     private touch(): void {

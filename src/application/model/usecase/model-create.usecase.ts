@@ -10,20 +10,21 @@ export class CreateModelUseCase {
     ) { }
 
     async execute({ name }: CreateModelInputDto): Promise<CreateModelOutputDto> {
-        if(!name) throw new Error("Model cannot be empty");
-        const validateModel = await this.modelRepository.findByName(name);
-        if(validateModel) throw new Error("Model is already exists")
+        // model precisa de um nome para ser criado
+        if(!name?.trim()) throw new Error("Model cannot be empty");
+        const existingModel = await this.modelRepository.existsByName(name);
+        if(existingModel) throw new Error("Model already exists");
         
-        const newModel = new Model(
-            this.uuid.generate(),
-            name,
-        );
+        const model = Model.create({
+            id: this.uuid.generate(),
+            name: name,
+        })
 
-        await this.modelRepository.create(newModel);
+        await this.modelRepository.create(model);
 
         return {
-            id: newModel.id,
-            name: newModel.name,
+            id: model.id,
+            name: model.name,
         }
     }
 }

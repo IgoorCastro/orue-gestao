@@ -4,13 +4,17 @@
 
 import { ProductType } from "../enums/product-type.enum";
 import capitalizeFirstLetter from "../utils/capitalize-first-letter";
+import normalizeName from "../utils/normalize-name";
+import { ProductColor } from "./product-color";
+import { ProductMaterial } from "./product-material";
+import { ProductSize } from "../enums/product-size.enum";
 
 type ProductProps = Readonly<{
     id: string,
     sku: string,
     name: string,
     price: number,
-    sizeId: string,
+    size: ProductSize,
     modelId: string,
     mlProductId?: string,
     barcode?: string,
@@ -26,8 +30,10 @@ export class Product {
     private _name: string;
     private _type: ProductType;
     private _price: number;
-    private _sizeId: string;
+    private _size: ProductSize;
     private _modelId: string;
+    private _materials: ProductMaterial[];
+    private _colors: ProductColor[];
     private _mlProductId?: string; // vínculo futuro com ML
     private _barcode?: string;
     private _createdAt: Date;
@@ -35,23 +41,25 @@ export class Product {
     private _deletedAt?: Date;
 
     private constructor(props: ProductProps) {
-        if (!props.id || props.id.trim().length === 0) throw new Error("Id cannot be empty");
-        this.validateSize(props.sizeId);
+        if (!props.id?.trim()) throw new Error("Id cannot be empty");
+        this.validateSize(props.size);
         this.validateModel(props.modelId);
-        this.validateName(props.name);
+        Product.validateName(props.name);
         this.validatePrice(props.price);
         this.validateSku(props.sku);
         this.validateType(props.type);
-        if(props.barcode !== undefined) this.validateBarCode(props.barcode);
+        if (props.barcode !== undefined) this.validateBarCode(props.barcode);
 
         this._id = props.id;
-        this._name = capitalizeFirstLetter(props.name);
+        this._name = props.name;
         this._price = props.price;
         this._type = props.type;
         this._sku = props.sku;
         this._barcode = props.barcode;
-        this._sizeId = props.sizeId;
+        this._size = props.size;
         this._modelId = props.modelId;
+        this._materials = [];
+        this._colors = [];
         this._mlProductId = props.mlProductId;
         this._createdAt = props.createdAt;
         this._updatedAt = props.updatedAt;
@@ -65,7 +73,7 @@ export class Product {
         type: ProductType,
         sku: string,
         barcode?: string,
-        sizeId: string,
+        size: ProductSize,
         modelId: string,
         mlProductId?: string,
     }): Product {
@@ -73,12 +81,12 @@ export class Product {
 
         return new Product({
             id: props.id,
-            name: props.name,
+            name: Product.formatName(props.name),
             price: props.price,
             type: props.type,
             sku: props.sku,
             barcode: props.barcode,
-            sizeId: props.sizeId,
+            size: props.size,
             modelId: props.modelId,
             mlProductId: props.mlProductId,
             createdAt: now,
@@ -87,8 +95,13 @@ export class Product {
         });
     }
 
-    static restore(props: ProductProps): Product {
-        return new Product(props);
+    static restore(props: ProductProps & { colors: ProductColor[], materials: ProductMaterial[] }): Product {
+        const product = new Product(props);
+
+        product._colors = props.colors;
+        product._materials = props.materials;
+
+        return product;
     }
 
     get id(): string {
@@ -112,10 +125,10 @@ export class Product {
     }
 
     rename(name: string): void {
-        if (name === this._name) return;
-        this.validateName(name);
+        const formattedName = Product.formatName(name);
+        if (formattedName === this._name) return;
 
-        this._name = capitalizeFirstLetter(name);
+        this._name = formattedName;
         this.touch();
     }
 
@@ -144,15 +157,15 @@ export class Product {
         this.touch();
     }
 
-    get sizeId(): string {
-        return this._sizeId;
+    get size(): ProductSize {
+        return this._size;
     }
 
-    changeSize(sizeId: string): void {
-        if (sizeId === this.sizeId) return;
-        this.validateSize(sizeId);
+    changeSize(size: ProductSize): void {
+        if (size === this.size) return;
+        this.validateSize(size);
 
-        this._sizeId = sizeId;
+        this._size = size;
         this.touch();
     }
 
@@ -195,6 +208,62 @@ export class Product {
         this.touch();
     }
 
+    get colors(): ProductColor[] {
+        return [...this._colors];
+    }
+
+    addColor(input: { id: string; colorId: string }): void {
+        if (!input.colorId?.trim()) throw new Error("Color id cannot be empty");
+        // evita duplicidade
+        if (this._colors.some(color => color.colorId === input.colorId)) throw new Error("Color already exists");
+
+        this._colors.push(new ProductColor({
+            id: input.id,
+            productId: this._id,
+            colorId: input.colorId,
+        }));
+
+        this.touch();
+    }
+
+    removeColor(colorId: string): void {
+        // salva o tamanho inicial
+        const initialLength = this._colors.length;
+
+        this._colors = this._colors.filter(color => color.colorId !== colorId);
+
+        // se tiver alteração no tamanho inicial, touch!
+        if (this._colors.length !== initialLength) this.touch();
+    }
+
+    get materials(): ProductMaterial[] {
+        return [...this._materials];
+    }
+
+    addMaterial(input: { id: string; materialId: string }): void {
+        if (!input.materialId?.trim()) throw new Error("Material id cannot be empty");
+        // evita duplicidade
+        if (this._materials.some(material => material.materialId === input.materialId)) throw new Error("Material already exists");
+
+        this._materials.push(new ProductMaterial({
+            id: input.id,
+            productId: this._id,
+            materialId: input.materialId,
+        }));
+
+        this.touch();
+    }
+
+    removeMaterial(materialId: string): void {
+        // salva o tamanho inicial
+        const initialLength = this._materials.length;
+
+        this._materials = this._materials.filter(material => material.materialId !== materialId);
+
+        // se tiver alteração no tamanho inicial, touch!
+        if (this._materials.length !== initialLength) this.touch();
+    }
+
     get createdAt(): Date {
         return this._createdAt;
     }
@@ -211,32 +280,39 @@ export class Product {
         if (price < 0 || !Number.isFinite(price)) throw new Error("Invalid price");
     }
 
-    private validateName(name: string): void {
-        if (!name || name.trim().length === 0) throw new Error("Name cannot be empty");
+    private static validateName(name: string): void {
+        if (!name?.trim()) throw new Error("Name cannot be empty");
     }
 
     private validateSku(sku: string): void {
-        if (!sku || sku.trim().length === 0) throw new Error("Sku cannot be empty");
+        if (!sku?.trim()) throw new Error("Sku cannot be empty");
     }
 
-    private validateSize(size: string): void {
-        if (!size || size.trim().length === 0) throw new Error("Size cannot be empty");
+    private validateSize(size: ProductSize): void {        
+        if (!Object.values(ProductSize).includes(size)) throw new Error("Product size is invalid");
     }
 
     private validateModel(model: string): void {
-        if (!model || model.trim().length === 0) throw new Error("Model cannot be empty");
+        if (!model?.trim()) throw new Error("Model cannot be empty");
     }
 
     private validateMlProductId(mlProductId: string): void {
-        if (!mlProductId || mlProductId.trim().length === 0) throw new Error("ID Mercado Livre is invalid");
+        if (!mlProductId?.trim()) throw new Error("ID Mercado Livre is invalid");
     }
 
     private validateBarCode(barcode: string): void {
-        if (!barcode || barcode.trim().length === 0) throw new Error("Barcode cannot be empty");
+        if (!barcode?.trim()) throw new Error("Barcode cannot be empty");
     }
 
     private validateType(type: ProductType): void {
         if (!Object.values(ProductType).includes(type)) throw new Error("Product type is invalid");
+    }
+
+    private static formatName(name: string): string {
+        const normalized = normalizeName(name);
+        Product.validateName(normalized);
+
+        return capitalizeFirstLetter(normalized);
     }
 
     private touch(): void {

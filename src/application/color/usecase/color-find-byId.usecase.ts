@@ -1,22 +1,18 @@
 import { ColorRepository } from "@/src/domain/repositories/color.repository";
-import { UpdateColorInputDto, UpdateColorOutuputDto } from "../dto/color-save-dto";
-import { Color } from "@/src/domain/entities/color.entity";
+import { FindColorByIdInputDto, FindColorOutpuDto } from "../dto/color-find.dto";
 
-export class UpdateColorByIdUseCase {
+export class FindColorByIdUseCase {
     constructor(private colorRepository: ColorRepository) { }
 
-    async execute({ id, name }: UpdateColorInputDto): Promise<UpdateColorOutuputDto> {
-        if(!id || id.length === 0) throw new Error("Id cannot be empty");
+    async execute({ id }: FindColorByIdInputDto): Promise<FindColorOutpuDto> {
+        if(!id?.trim()) throw new Error("Id cannot be empty");
         
-        const existingColor = await this.colorRepository.findById(id);
-        if(!existingColor) throw new Error("Color not found");
-
-        if(name !== undefined) existingColor.rename(name);
-        await this.colorRepository.save(existingColor);
+        const color = await this.colorRepository.findById(id);
+        if(!color) throw new Error("Color not found");
 
         return {
-            id: existingColor.id,
-            name: existingColor.name,
-        }
+            id: color.id,
+            name: color.name,
+        };
     }
 }

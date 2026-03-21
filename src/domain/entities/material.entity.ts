@@ -1,4 +1,5 @@
 import capitalizeFirstLetter from "../utils/capitalize-first-letter";
+import normalizeName from "../utils/normalize-name";
 
 type MaterialProps = Readonly<{
     id: string;
@@ -16,12 +17,13 @@ export class Material {
     private _updatedAt: Date;
     private _deletedAt?: Date;
 
-    private constructor({ id, name, updatedAt, deletedAt, createdAt }: MaterialProps) {
-        if (!id || id.trim().length === 0) throw new Error("Id is required");
-        this.validateName(name);
+    private constructor({ id, name, createdAt, updatedAt, deletedAt }: MaterialProps) {
+        if (!id?.trim()) throw new Error("Id cannot be empty");
+        // manter o validate para testar o restore!
+        Material.validateName(name);
 
         this._id = id;
-        this._name = capitalizeFirstLetter(name);
+        this._name = name;
         this._createdAt = createdAt;
         this._updatedAt = updatedAt;
         this._deletedAt = deletedAt;
@@ -33,7 +35,7 @@ export class Material {
 
         return new Material({
             id: props.id,
-            name: props.name,
+            name: Material.formatName(props.name),
             createdAt: now,
             updatedAt: now,
             deletedAt: undefined,
@@ -54,11 +56,9 @@ export class Material {
     }
 
     rename(name: string): void {
-        const formattedName = capitalizeFirstLetter(name);
-
+        const formattedName = Material.formatName(name);
         if (this._name === formattedName) return;
 
-        this.validateName(name);
         this._name = formattedName;
         this.touch();
     }
@@ -83,12 +83,21 @@ export class Material {
     }
 
     restoreDeleted(): void {
+        if(!this._deletedAt) return;
+
         this._deletedAt = undefined;
         this.touch();
     }
 
-    private validateName(name: string): void {
-        if (!name || name.trim().length === 0) throw new Error("Material name cannot be empty");
+    private static validateName(name: string): void {
+        if (!name?.trim()) throw new Error("Material name cannot be empty");
+    }
+
+    private static formatName(name: string): string {
+        const normalized = normalizeName(name);
+        Material.validateName(normalized);
+
+        return capitalizeFirstLetter(normalized);
     }
 
     private touch(): void {

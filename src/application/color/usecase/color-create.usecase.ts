@@ -20,7 +20,7 @@ export class CreateColorUseCase {
             name,
         });
 
-        await this.colorRepository.create(color);
+        await this.colorRepository.save(color);
 
         return {
             id: color.id,

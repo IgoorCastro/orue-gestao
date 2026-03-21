@@ -20,7 +20,7 @@ export class ProductStock {
     private _deletedAt?: Date;
 
     private constructor(props: ProductStockProps) {
-        if (!props.id || props.id.trim().length === 0) throw new Error("Id cannot be empty");
+        if (!props.id?.trim()) throw new Error("Id cannot be empty");
         this.validateProductId(props.productId);
         this.validateStockId(props.stockId);
         this.validateQuantity(props.quantity);
@@ -61,6 +61,7 @@ export class ProductStock {
         return this._stockId;
     }
 
+    // talvez nunca seja usado
     changeStockId(id: string): void {
         // verifica se a prop é igual ao id atual
         if (id === this._stockId) return;
@@ -74,6 +75,7 @@ export class ProductStock {
         return this._productId;
     }
 
+    // talvez nunca seja usado
     changeProductId(id: string): void {
         // verifica se a prop é igual ao id atual
         if (id === this._productId) return;
@@ -96,7 +98,7 @@ export class ProductStock {
 
     decrease(amount: number): void {
         this.validateAmount(amount);
-        if(this._quantity - amount < 0) throw new Error("Insufficient stock");
+        if(amount > this._quantity) throw new Error("Insufficient stock");
 
         this._quantity -= amount;
         this.touch();
@@ -120,11 +122,11 @@ export class ProductStock {
     }
 
     private validateProductId(productId: string): void {
-        if (!productId || productId.trim().length === 0) throw new Error("Product id cannot be empty");
+        if (!productId?.trim()) throw new Error("Product id cannot be empty");
     }
 
     private validateStockId(stockId: string): void {
-        if (!stockId || stockId.trim().length === 0) throw new Error("Stock id cannot be empty");
+        if (!stockId?.trim()) throw new Error("Stock id cannot be empty");
     }
 
     private validateAmount(amount: number): void {

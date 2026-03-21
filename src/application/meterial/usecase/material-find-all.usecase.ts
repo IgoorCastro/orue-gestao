@@ -1,14 +1,18 @@
-import { ModelRepository } from "@/src/domain/repositories/model.repository";
+import { FindMaterialOutputDto } from "../dto/material-find.dto";
+import { MaterialRepository } from "@/src/domain/repositories/material.repository";
 
-export class FindModelAll {
+export class FindMateriallAllUseCase {
     constructor(
-        private modelRepository: ModelRepository,
+        private materialRepository: MaterialRepository,
     ) {}
 
-    async execute() {
-        const findedModel = await this.modelRepository.findAll();
-        if(!findedModel) throw new Error("Model not found");
+    async execute(): Promise<FindMaterialOutputDto[]> {
+        const materials = await this.materialRepository.findAll();
+        if(!materials) throw new Error("Material not found");
 
-        return findedModel;
+        return materials.map(material => ({
+            id: material.id,
+            name: material.name,
+        }))
     }
 }

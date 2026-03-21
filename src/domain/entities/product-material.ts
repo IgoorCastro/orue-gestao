@@ -12,7 +12,7 @@ export class ProductMaterial {
     private _materialId: string;
 
     constructor(props: ProductMaterialProps) {
-        if(!props.id || props.id.trim().length === 0) throw new Error("Id cannot be empty");
+        if(!props.id?.trim()) throw new Error("Id cannot be empty");
         this.validateProductId(props.productId);
         this.validateMaterialId(props.materialId);
 
@@ -29,8 +29,11 @@ export class ProductMaterial {
         return this._productId;
     }
 
+    // talvez nunca seja usado!
     changeProductId(productId: string): void {
+        if(productId === this._productId) return;
         this.validateProductId(productId);
+
         this._productId = productId;
     }
 
@@ -39,15 +42,17 @@ export class ProductMaterial {
     }
 
     changeMaterialId(materialId: string): void {
+        if(materialId === this._materialId) return;
         this.validateMaterialId(materialId);
+
         this._materialId = materialId;
     }
 
     private validateProductId(productId: string): void {
-        if(!productId || productId.trim().length === 0) throw new Error("Product Id cannot be empty");
+        if(!productId?.trim()) throw new Error("Product Id cannot be empty");
     }
 
     private validateMaterialId(material: string): void {
-        if(!material || material.trim().length === 0) throw new Error("Material Id cannot be empty");
+        if(!material?.trim()) throw new Error("Material Id cannot be empty");
     }
 }

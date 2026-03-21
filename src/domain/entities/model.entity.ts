@@ -1,4 +1,5 @@
 import capitalizeFirstLetter from "../utils/capitalize-first-letter";
+import normalizeName from "../utils/normalize-name";
 
 type ModelProps = Readonly<{
     id: string,
@@ -17,11 +18,12 @@ export class Model {
     private _deletedAt?: Date;
 
     private constructor(props: ModelProps) {
-        if (!props.id || props.id.trim().length === 0) throw new Error("Id cannot be empty");
-        this.validateName(props.name);
+        if (!props.id?.trim()) throw new Error("Id cannot be empty");
+        // manter o validate para testar o restore!
+        Model.validateName(props.name);
 
         this._id = props.id;
-        this._name = capitalizeFirstLetter(props.name);
+        this._name = props.name;
         this._createdAt = props.createdAt;
         this._updatedAt = props.updatedAt;
         this._deletedAt = props.deletedAt;
@@ -32,7 +34,7 @@ export class Model {
 
         return new Model({
             id: props.id,
-            name: props.name,
+            name: Model.formatName(props.name),
             createdAt: now,
             updatedAt: now,
             deletedAt: undefined,
@@ -52,11 +54,9 @@ export class Model {
     }
 
     rename(name: string): void {
-        const formattedName = capitalizeFirstLetter(name);
-
+        const formattedName = Model.formatName(name);
         if (this._name === formattedName) return;
 
-        this.validateName(name);
         this._name = formattedName;
         this.touch();
     }
@@ -81,15 +81,23 @@ export class Model {
     }
 
     restoreDeleted(): void {
+        if (!this._deletedAt) return;
+
         this._deletedAt = undefined;
         this.touch();
     }
 
-    private validateName(name: string) {
-        if (!name || name.trim().length === 0) throw new Error("Model cannot be empty");
-    }
-
     private touch(): void {
         this._updatedAt = new Date();
+    }
+
+    private static validateName(name: string) {
+        if (!name?.trim()) throw new Error("Model cannot be empty");
+    }
+
+    private static formatName(name: string): string {
+        const normalized = normalizeName(name);
+        Model.validateName(normalized);
+        return capitalizeFirstLetter(normalized);
     }
 }

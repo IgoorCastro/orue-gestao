@@ -1,4 +1,5 @@
 import capitalizeFirstLetter from "../utils/capitalize-first-letter";
+import normalizeName from "../utils/normalize-name";
 
 type StoreProps = Readonly<{
     id: string,
@@ -17,11 +18,10 @@ export class Store {
     private _deletedAt?: Date;
 
     private constructor(props: StoreProps) {
-        if(!props.id || props.id.trim().length === 0) throw new Error("Id is required");
-        this.validateName(props.name);
+        if(!props.id?.trim()) throw new Error("Id is required");
 
         this._id = props.id;
-        this._name = capitalizeFirstLetter(props.name);
+        this._name = props.name;
         this._createdAt = props.createdAt;
         this._updatedAt = props.updatedAt;
         this._deletedAt = props.deletedAt;
@@ -31,7 +31,7 @@ export class Store {
         const now = new Date();
         return new Store({
             id: props.id,
-            name: props.name,
+            name: Store.formatName(props.name),
             createdAt: now,
             updatedAt: now,
             deletedAt: undefined,
@@ -50,6 +50,14 @@ export class Store {
         return this._name;
     }
 
+    rename(name: string): void {
+        if(name === this._name) return;
+
+        this._name = Store.formatName(name);
+        this.touch();
+    }
+
+
     get createdAt(): Date {
         // garantindo a imutabilidade
         return new Date(this._createdAt);
@@ -63,16 +71,35 @@ export class Store {
         return this._deletedAt ? new Date(this._deletedAt) : undefined;
     }
 
-    rename(name: string): void {
-        if(name === this._name) return;
-        this.validateName(name);
+    // soft delete do estoque
+    delete(): void {
+        if (this._deletedAt) throw new Error("Store already deleted");
 
-        this._name = capitalizeFirstLetter(name);
+        this._deletedAt = new Date();
         this.touch();
     }
 
-    private validateName(name: string) {
-        if (!name || name.trim().length === 0) throw new Error("Name cannot be empty")
+    // reativa o estoque
+    restoreDeleted(): void {
+        if (!this._deletedAt) return;
+
+        this._deletedAt = undefined;
+        this.touch();
+    }
+
+    isActive(): boolean {
+        return !this._deletedAt;
+    }
+
+    private static validateName(name: string) {
+        if (!name?.trim()) throw new Error("Name cannot be empty")
+    }
+
+    private static formatName(name: string): string {
+        const normalized = normalizeName(name);
+        Store.validateName(normalized);
+
+        return capitalizeFirstLetter(normalized);
     }
 
     private touch(): void {

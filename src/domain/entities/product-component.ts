@@ -22,12 +22,11 @@ export class ProductComponent {
     private _deletedAt?: Date;
 
     private constructor(props: ProductComponentProps) {
-        if (!props.id || props.id.trim().length === 0) throw new Error("Id cannot be empty");
+        if (!props.id?.trim()) throw new Error("Id cannot be empty");
         this.validateComponentProductId(props.componentProductId);
         this.validateParentProductId(props.parentProductId);
+        this.ensureNotSameProduct(props.parentProductId, props.componentProductId);
         this.validateQuantity(props.quantity);
-        this.ensureDifferentProducts(props.parentProductId, props.componentProductId);
-        if (props.componentProductId === props.parentProductId) throw new Error("Parent and Component Products cannot be equals");
 
         this._id = props.id;
         this._parentProductId = props.parentProductId;
@@ -68,7 +67,7 @@ export class ProductComponent {
 
     changeParentProductId(parentProductId: string): void {
         this.validateParentProductId(parentProductId);
-        this.ensureDifferentProducts(parentProductId, this._componentProductId);
+        this.ensureNotSameProduct(parentProductId, this._componentProductId);
         // evita troca pelo msm produto
         if (parentProductId === this._parentProductId) return;
 
@@ -82,7 +81,7 @@ export class ProductComponent {
 
     changeComponentProductId(componentProductId: string): void {
         this.validateComponentProductId(componentProductId);
-        this.ensureDifferentProducts(this._parentProductId, componentProductId);
+        this.ensureNotSameProduct(this._parentProductId, componentProductId);
         // evita troca pelo msm produto
         if (componentProductId === this._componentProductId) return;
 
@@ -115,21 +114,21 @@ export class ProductComponent {
     }
 
     private validateParentProductId(parentProductId: string): void {
-        if (!parentProductId || parentProductId.trim().length === 0) throw new Error("Parent Product Id cannot be empty");
+        if (!parentProductId?.trim()) throw new Error("Parent Product Id cannot be empty");
     }
 
     private validateComponentProductId(componentProductId: string): void {
-        if (!componentProductId || componentProductId.trim().length === 0) throw new Error("Component Product Id cannot be empty");
+        if (!componentProductId?.trim()) throw new Error("Component Product Id cannot be empty");
     }
 
     private validateQuantity(quantity: number): void {
-        // kit com mais de um produto no minimo
+        // kit com um ou mais produtos no minimo
         if (!Number.isSafeInteger(quantity) || quantity <= 0) throw new Error("Invalid quantity");
     }
 
     // evita que o produto da composição seja igual
     // ao produto pai
-    private ensureDifferentProducts(parentId: string, componentId: string): void {
+    private ensureNotSameProduct(parentId: string, componentId: string): void {
         if (parentId === componentId) {
             throw new Error("Parent and component products cannot be equals");
         }
