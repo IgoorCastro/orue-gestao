@@ -2,6 +2,9 @@ import { User } from "@/src/domain/entities/user.entity";
 import { UserRepository } from "@/src/domain/repositories/user.repository";
 import { CreateUserInputDTO, CreateUserOutputDTO } from "../dto/user-create.dto";
 import { UuidGenerator } from "@/src/domain/services/uuid-generator.services";
+import normalizeName from "@/src/domain/utils/normalize-name";
+import { ValidationError } from "@/src/domain/errors/validation.error";
+import { ConflictError } from "@/src/domain/errors/conflict.error";
 
 export class CreateUserUseCase {
     constructor(
@@ -9,28 +12,29 @@ export class CreateUserUseCase {
         private uuid: UuidGenerator,
     ) { }
 
-    async execute({ name, role }: CreateUserInputDTO): Promise<CreateUserOutputDTO> {
-        const existingUser = await this.userRepository.findByName(name);
-        if (existingUser.length > 0) throw new Error("User already exists");
+    async execute(input: CreateUserInputDTO): Promise<CreateUserOutputDTO> {
+        // validação pelo nome
+        const formattedName = normalizeName(input.name);
+        const exists = await this.userRepository.existsByName(formattedName);
+        if (exists) throw new ConflictError("User already exists");
 
         // novo usuario
-        const newUser = new User({
+        const user = User.create({
             id: this.uuid.generate(),
-            role: role,
-            isActive: true,
-            createdAt: new Date(),
-            name: name,
+            name: formattedName,
+            role: input.role,
         });
 
         // inserindo no banco
-        await this.userRepository.create(newUser);
+        await this.userRepository.create(user);
 
         return {
-            id: newUser.id,
-            name: newUser.name,
-            role: newUser.role,
-            isActive: newUser.isActive,
-            createdAt: newUser.createdAt,
+            id: user.id,
+            name: user.name,
+            role: user.role,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            deletedAt: user.deletedAt,
         };
     }
 }

@@ -1,16 +1,27 @@
 import { ProductStockRepository } from "@/src/domain/repositories/product-stock.repository";
+import { FindProductStockByProductIdInputDto, FindProductStockOutputDto } from "../dto/product-stock-find.dto";
+import { ValidationError } from "@/src/domain/errors/validation.error";
+import { NotFoundError } from "@/src/domain/errors/not-found.error";
 
 export class FindProductStockByProductIdUseCase {
     constructor(
         private productStockRepository: ProductStockRepository,
     ) { }
 
-    async execute(productId: string) {
-        if(!productId) throw new Error("Product id cannot be empty");
+    async execute(input: FindProductStockByProductIdInputDto): Promise<FindProductStockOutputDto> {
+        if (!input.productId?.trim()) throw new ValidationError("Product id cannot be empty");
 
-        const findedProductStock = await this.productStockRepository.findById(productId);
-        if(!findedProductStock) throw new Error("Product stock not found");
+        const ps = await this.productStockRepository.findById(input.productId);
+        if (!ps) throw new NotFoundError("Product stock not found");
 
-        return findedProductStock;
+        return {
+            id: ps.id,
+            productId: ps.productId,
+            stockId: ps.stockId,
+            quantity: ps.quantity,
+            createdAt: ps.createdAt,
+            updatedAt: ps.updatedAt,
+            deletedAt: ps.deletedAt,
+        };
     }
 }

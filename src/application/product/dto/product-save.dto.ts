@@ -1,24 +1,28 @@
+import { ProductSize } from "@/src/domain/enums/product-size.enum"
+import { ProductType } from "@/src/domain/enums/product-type.enum"
+
 export type SaveProductInputDto = {
     id: string,
-    name: string,
-    price: number,
-    colorId: string,
-    sizeId: string,
-    materialId: string,
-    modelId: string,
+    name?: string,
+    type?: ProductType,
+    price?: number,
+    size?: ProductSize,
+    modelId?: string,
+    materialIds?: string[],
+    colorIds?: string[],
     mlProductId?: string,
-    barcode?: string,
 }
 
 export type SaveProductOutputDto = {
     id: string,
-    sku: string,
     name: string,
+    type: ProductType,
     price: number,
-    colorId: string,
-    sizeId: string,
-    materialId: string,
+    size: ProductSize,
     modelId: string,
+    materialIds: string[],
+    colorIds: string[],
     mlProductId?: string,
     barcode?: string,
+    sku: string,
 }

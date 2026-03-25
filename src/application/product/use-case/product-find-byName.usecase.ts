@@ -1,19 +1,28 @@
 import { ProductRepository } from "@/src/domain/repositories/product.repository";
+import { FindProductByNameInputDto, FindProductOutputDto } from "../dto/product-find.dto";
+import { ValidationError } from "@/src/domain/errors/validation.error";
 
-type FindProductByNameProps = {
-    name: string,
-}
-
-export class FindProductByNameUseCase {
+export class FindProductsByNameUseCase {
     constructor(
         private productRepository: ProductRepository,
     ) { }
 
-    async execute(input: FindProductByNameProps) {
-        if(!input) throw new Error("Product name cannot be empty");
-        const findedProduct = await this.productRepository.findByName(input.name);
-        if(!findedProduct) throw new Error("User not found");
-
-        return findedProduct;
+    async execute(input: FindProductByNameInputDto): Promise<FindProductOutputDto[]> {
+        if(!input) throw new ValidationError("Product name cannot be empty");
+        const products = await this.productRepository.findByName(input.name);
+        
+        return products.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            type: p.type,
+            size: p.size,
+            colorIds: p.colors,
+            materialIds: p.materials,
+            modelId: p.modelId,
+            sku: p.sku,
+            barcode: p.barcode,
+            mlProductId: p.mlProductId,
+        }));
     }
 }

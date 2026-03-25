@@ -1,69 +1,119 @@
 import { ProductRepository } from "@/src/domain/repositories/product.repository";
 import { SaveProductInputDto, SaveProductOutputDto } from "../dto/product-save.dto";
 import { SkuGeneratorService } from "@/src/domain/services/sku-generator.services";
+import { MaterialRepository } from "@/src/domain/repositories/material.repository";
+import { ColorRepository } from "@/src/domain/repositories/color.repository";
+import { ModelRepository } from "@/src/domain/repositories/model.repository";
+import { BarcodeGeneratorService } from "@/src/domain/services/barcode-generator.services";
+import { ValidationError } from "@/src/domain/errors/validation.error";
+import { NotFoundError } from "@/src/domain/errors/not-found.error";
+import normalizeName from "@/src/domain/utils/normalize-name";
+import { ConflictError } from "@/src/domain/errors/conflict.error";
 
 export class SaveProductUseCase {
     constructor(
         private productRepository: ProductRepository,
-        private skuGen: SkuGeneratorService,
+        private colorRepository: ColorRepository,
+        private materialRepository: MaterialRepository,
+        private skuGeneration: SkuGeneratorService,
+        private modelRepository: ModelRepository,
     ) { }
 
     async execute(input: SaveProductInputDto): Promise<SaveProductOutputDto> {
-        const { colorId, id, materialId, modelId, name, price, sizeId, barcode, mlProductId } = input;
+        const { id, name, type, price, size, modelId, materialIds, colorIds, mlProductId } = input;
         let shouldRecalculateSku = false; // controle para gerar novo sku
 
-        const existingProduct = await this.productRepository.findById(id);
-        if (!existingProduct) throw new Error("Product not found");
+        if(!id?.trim()) throw new ValidationError("Id cannot be empty");
+        
+        const product = await this.productRepository.findById(id);
+        if (!product) throw new NotFoundError("Product not found");
 
-        if (price) existingProduct.changePrice(price);
-        if (barcode) existingProduct.changeBarcode(barcode);
-        if (mlProductId) existingProduct.changeMlProductId(mlProductId);
+        if (name !== undefined) {
+            const formattedName = normalizeName(name);
+            const exists = await this.productRepository.findByName(formattedName);
+            if(exists) throw new ConflictError("Product name already exists");
+            
+            product.rename(name);
+            shouldRecalculateSku = true;
+        }
 
-        if (colorId) {
-            existingProduct.changeColor(colorId);
+        if (type !== undefined) product.changeType(type);
+
+        if (price !== undefined) product.changePrice(price);
+
+        if (size !== undefined) {
+            product.changeSize(size);
             shouldRecalculateSku = true;
         }
-        if (materialId) {
-            existingProduct.changeMaterial(materialId);
+
+        if (mlProductId !== undefined) product.changeMlProductId(mlProductId);
+
+        // altera todo os ids por novos
+        if (colorIds !== undefined) {
+            const colors = await this.colorRepository.findByIds(colorIds);
+            this.validateIds(colors, colorIds, "Colors");
+
+            product.changeColors(colorIds);
             shouldRecalculateSku = true;
         }
-        if (modelId) {
-            existingProduct.changeModel(modelId);
+
+        if (materialIds !== undefined) {
+            // recebe um array de Ids e verifica no Db
+            const materials = await this.materialRepository.findByIds(materialIds);
+            this.validateIds(materials, materialIds, "Materials");
+
+            product.changeMaterials(materialIds);
             shouldRecalculateSku = true;
         }
-        if (name) {
-            existingProduct.rename(name);
+
+        if (modelId !== undefined) {
+            product.changeModel(modelId);
             shouldRecalculateSku = true;
         }
-        if (sizeId) {
-            existingProduct.changeSize(sizeId)
-            shouldRecalculateSku = true;
-        };
 
         // alterar sku sempre que houver alteração
         // em suas propriedades
-        if (shouldRecalculateSku)
-            existingProduct.changeSku(this.skuGen.generate({
-                name,
-                model: existingProduct.name,
-                material: existingProduct.materialId,
-                size: existingProduct.sizeId,
-                color: existingProduct.name,
-            }));
+        if (shouldRecalculateSku) {
+            const [colors, materials, model] = await Promise.all([
+                this.colorRepository.findByIds(product.colors),
+                this.materialRepository.findByIds(product.materials),
+                this.modelRepository.findById(product.modelId),
+            ]);
 
-        await this.productRepository.save(existingProduct);
+            const sku = this.skuGeneration.generate({
+                name: product.name,
+                color: colors.map(c => c.name),
+                material: materials.map(m => m.name),
+                model: model?.name ?? "WWW",
+                size: product.size,
+            })
+
+            product.changeSku(sku);
+        }
+
+        await this.productRepository.save(product);
 
         return {
-            id: existingProduct.id,
-            colorId: existingProduct.colorId,
-            materialId: existingProduct.materialId,
-            modelId: existingProduct.modelId,
-            name: existingProduct.name,
-            price: existingProduct.price,
-            sizeId: existingProduct.sizeId,
-            sku: existingProduct.sku,
-            barcode: existingProduct.barcode,
-            mlProductId: existingProduct.mlProductId,
+            id: product.id,
+            name: product.name,
+            size: product.size,
+            type: product.type,
+            colorIds: product.colors,
+            materialIds: product.materials,
+            modelId: product.modelId,
+            price: product.price,
+            sku: product.sku,
+            barcode: product.barcode,
+            mlProductId: product.mlProductId,
         }
+    }
+
+    // valida os ids recebidos com os ids encontrados no db
+    private validateIds(found: { id: string }[], inputIds: string[], label: string) {
+        const foundIds = found.map(i => i.id);
+        const missing = inputIds.filter(id => !foundIds.includes(id));
+
+        // missing > 0 falha
+        if (missing.length > 0) throw new NotFoundError(`${label} not found: ${missing.join(", ")}`);
     }
 }

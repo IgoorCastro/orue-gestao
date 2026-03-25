@@ -6,7 +6,7 @@ export type FindColorByIdInputDto = Readonly<{
     id: string,
 }>;
 
-export type FindColorOutpuDto = Readonly<{
+export type FindColorOutputDto = Readonly<{
     id: string,
     name: string,
 }>;

@@ -1,6 +1,9 @@
 import { MaterialRepository } from "@/src/domain/repositories/material.repository";
-import { StockRepository } from "@/src/domain/repositories/stock.repository";
 import { SaveMaterialDto } from "../dto/material-save.dto";
+import { ValidationError } from "@/src/domain/errors/validation.error";
+import { NotFoundError } from "@/src/domain/errors/not-found.error";
+import { ConflictError } from "@/src/domain/errors/conflict.error";
+import normalizeName from "@/src/domain/utils/normalize-name";
 
 export class UpdateMaterialUseCase {
     constructor(
@@ -8,16 +11,35 @@ export class UpdateMaterialUseCase {
     ) { }
 
     async execute({ id, name }: SaveMaterialDto): Promise<SaveMaterialDto> {
-        const existingMaterial = await this.materialRepository.findById(id);
-        if(!existingMaterial) throw new Error("Material not found");
+        if(!id?.trim()) throw new ValidationError("Id cannot be empty");
 
-        if(name) existingMaterial.rename(name);
+        const material = await this.materialRepository.findById(id);
+        if(!material) throw new NotFoundError("Material not found");
 
-        await this.materialRepository.save(existingMaterial);
+        if(name === undefined) return {
+            id: material.id,
+            name: material.name,
+        }
+
+        const formattedName = normalizeName(name);
+
+        // verifica se o nome da props é o msm nome em registro
+        if(formattedName === material.name) return {
+            id: material.id,
+            name: material.name,
+        }
+
+        // evita duplicidade de registros com o msm nome
+        const exists = await this.materialRepository.existsByName(name);
+        if (exists) throw new ConflictError("Material already exists");
+
+        material.rename(formattedName);
+
+        await this.materialRepository.save(material);
 
         return {
-            id: existingMaterial.id,
-            name: existingMaterial.name,
+            id: material.id,
+            name: material.name,
         }
     }
 }

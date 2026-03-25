@@ -1,5 +1,7 @@
+import { ValidationError } from "@/src/domain/errors/validation.error";
 import { FindMaterialByIdInputDto, FindMaterialOutputDto } from "../dto/material-find.dto";
 import { MaterialRepository } from "@/src/domain/repositories/material.repository";
+import { NotFoundError } from "@/src/domain/errors/not-found.error";
 
 export class FindMaterialByIdUseCase {
     constructor(
@@ -7,10 +9,10 @@ export class FindMaterialByIdUseCase {
     ) { }
 
     async execute({ id }: FindMaterialByIdInputDto): Promise<FindMaterialOutputDto> {
-        if(!id?.trim()) throw new Error("Material id is required");
+        if(!id?.trim()) throw new ValidationError("Material id is required");
 
         const material = await this.materialRepository.findById(id);
-        if(!material) throw new Error("Material not found");
+        if(!material) throw new NotFoundError("Material not found");
 
         return {
             id: material.id,

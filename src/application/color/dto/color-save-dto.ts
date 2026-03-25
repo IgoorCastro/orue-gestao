@@ -3,7 +3,7 @@ export type UpdateColorInputDto = Readonly<{
     name: string,
 }>;
 
-export type UpdateColorOutuputDto = Readonly<{
+export type UpdateColorOutputDto = Readonly<{
     id: string
     name: string,
 }>;

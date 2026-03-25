@@ -1,16 +1,22 @@
 import { ModelRepository } from "@/src/domain/repositories/model.repository";
+import { FindModelByIdInputDto, FindModelOutputDto } from "../dto/model-find.dto";
+import { ValidationError } from "@/src/domain/errors/validation.error";
+import { NotFoundError } from "@/src/domain/errors/not-found.error";
 
-export class FindModelById {
+export class FindModelByIdUseCase {
     constructor(
         private modelRepository: ModelRepository,
     ) { }
 
-    async execute(modelId: string) {
-        if(!modelId) throw new Error("Model id is required");
+    async execute(input: FindModelByIdInputDto): Promise<FindModelOutputDto> {
+        if (!input.id?.trim()) throw new ValidationError("Model id is required");
 
-        const findedModel = this.modelRepository.findById(modelId);
-        if(!findedModel) throw new Error("Model not found");
+        const findedModel = await this.modelRepository.findById(input.id);
+        if (!findedModel) throw new NotFoundError("Model not found");
 
-        return findedModel;
+        return {
+            id: findedModel.id,
+            name: findedModel.name,
+        };
     }
 }

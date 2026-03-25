@@ -1,10 +1,10 @@
 import { ColorRepository } from "@/src/domain/repositories/color.repository";
-import { FindColorOutpuDto } from "../dto/color-find.dto";
+import { FindColorOutputDto } from "../dto/color-find.dto";
 
 export class FindColorAllUseCase {
     constructor(private colorRepository: ColorRepository) { }
 
-    async execute(): Promise<FindColorOutpuDto[]> {        
+    async execute(): Promise<FindColorOutputDto[]> {        
         const colors = await this.colorRepository.findAll();
 
         return colors.map(color => ({

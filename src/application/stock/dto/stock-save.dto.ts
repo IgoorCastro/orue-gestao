@@ -4,6 +4,15 @@ export interface SaveStockInputDto {
     id: string,
     name?: string,
     type?: StockType,
-    isActive?: boolean,
     storeId?: string,
+}
+
+export interface SaveStockOutputDto {
+    id: string,
+    name: string,
+    type: StockType,
+    storeId?: string,
+    createdAt: Date,
+    updatedAt: Date,
+    deletedAt?: Date,
 }

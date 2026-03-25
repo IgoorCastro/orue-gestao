@@ -1,14 +1,17 @@
 import { ModelRepository } from "@/src/domain/repositories/model.repository";
+import { FindModelOutputDto } from "../dto/model-find.dto";
 
-export class FindModelAll {
+export class FindModelAllUseCase {
     constructor(
         private modelRepository: ModelRepository,
     ) {}
 
-    async execute() {
-        const findedModel = await this.modelRepository.findAll();
-        if(!findedModel) throw new Error("Model not found");
+    async execute(): Promise<FindModelOutputDto[]> {
+        const models = await this.modelRepository.findAll();
 
-        return findedModel;
+        return models.map(model => ({
+            id: model.id,
+            name: model.name,
+        }));
     }
 }

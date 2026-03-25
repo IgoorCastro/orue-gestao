@@ -8,72 +8,102 @@ import { SizeRepository } from "@/src/domain/repositories/size.repository";
 import { MaterialRepository } from "@/src/domain/repositories/material.repository";
 import { ModelRepository } from "@/src/domain/repositories/model.repository";
 import { SkuGeneratorService } from "@/src/domain/services/sku-generator.services";
-import { BarcodeGeneratorSerive } from "@/src/domain/services/barcode-generator.services";
+import { BarcodeGeneratorService } from "@/src/domain/services/barcode-generator.services";
+import normalizeName from "@/src/domain/utils/normalize-name";
+import { ConflictError } from "@/src/domain/errors/conflict.error";
+import { NotFoundError } from "@/src/domain/errors/not-found.error";
 
 export class CreateProductUseCase {
     constructor(
         private productRepository: ProductRepository,
         private colorRepository: ColorRepository,
-        private sizeRepository: SizeRepository,
         private materialRepository: MaterialRepository,
         private modelRepository: ModelRepository,
         private uuid: UuidGenerator,
         private sku: SkuGeneratorService,
-        private barcode: BarcodeGeneratorSerive,
+        private barcode: BarcodeGeneratorService,
     ) { }
 
     async execute(input: CreateProductInputDto): Promise<CreateProductOutputDto> {
-        const { name, price, colorId, sizeId, materialId, modelId, mlProductId } = input;
+        const { name, type, price, size, modelId, materialIds, colorIds, mlProductId } = input;
         
-        const existingProduct = await this.productRepository.findByName(name);
-        if(existingProduct) throw new Error("Product already exists");
+        const formattedName = normalizeName(name);
 
-        const color = await this.colorRepository.findById(colorId);
-        const size = await this.sizeRepository.findById(sizeId);
-        const material = await this.materialRepository.findById(materialId);
-        const model = await this.modelRepository.findById(modelId);
-        if (!model || !material || !color || !size) throw new Error("Invalid product attributes");
+        const [existingProduct, model, materials, colors] = await Promise.all([
+            this.productRepository.existsByName(formattedName),
+            this.modelRepository.findById(modelId),
+            this.materialRepository.findByIds(materialIds),
+            this.colorRepository.findByIds(colorIds),
+        ])
+
+        // valida o produto pelo nome
+        if (existingProduct) throw new ConflictError("Product already exists");
+
+        // validação do modelo
+        if (!model) throw new NotFoundError("Model not found");
+
+        // size sera validado na entidade (ts ja garante o tipo no ENUM)
+        // validação dos materiais
+        this.validateIds(materials, materialIds, "Materials");
+
+        // validação das cores
+        this.validateIds(colors, colorIds, "Colors");
 
         // gerar e testar barcode 
         let bc = ""; // barcode
         let exists = true;
-        while(exists) {
+        // roda até gerar um bc disponivel
+        while (exists) {
             bc = this.barcode.generete();
             exists = await this.productRepository.existsByBarcode(bc); // true para positivo
         }
 
-        const product = new Product({
+        const product = Product.create({
             id: this.uuid.generate(),
+            name: name,
+            price: price,
+            type: type,
+            
             sku: this.sku.generate({
-                name,
+                name: formattedName,
                 model: model.name,
-                material: material.name,
-                size: size.size,
-                color: color.name,
+                material: materials.map(m => m.name),
+                size: size,
+                color: colors.map(c => c.name),
             }),
             barcode: bc,
-            name,
-            price,
-            colorId,
-            sizeId,
-            materialId,
-            modelId,
-            mlProductId,
+            size: size,
+            modelId: modelId,
+            mlProductId: mlProductId,
         });
 
-        await this.productRepository.create(product);
+        // adiciona os ids dos materiais na entidade
+        materialIds.forEach(materialId => product.addMaterial({ materialId }));
+
+        // adiciona os ids das cores na entidade
+        colorIds.forEach(colorId => product.addColor({ colorId }));
+
+        await this.productRepository.save(product);
 
         return {
             id: product.id,
             sku: product.sku,
             name: product.name,
             price: product.price,
-            colorId: product.colorId,
-            sizeId: product.sizeId,
-            materialId: product.materialId,
+            colorIds: product.colors,
+            size: product.size,
+            materialIds: product.materials,
             modelId: product.modelId,
             barcode: product.barcode,
             mlProductId: product.mlProductId,
         }
+    }
+
+    // valida os ids recebidos com os ids encontrados no db
+    private validateIds(found: { id: string }[], inputIds: string[], label: string) {
+        const foundIds = found.map(i => i.id);
+        const missing = inputIds.filter(id => !foundIds.includes(id));
+
+        if (missing.length > 0) throw new NotFoundError(`${label} not found: ${missing.join(", ")}`);
     }
 }

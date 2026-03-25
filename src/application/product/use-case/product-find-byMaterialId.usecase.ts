@@ -1,18 +1,14 @@
 // import { ProductRepository } from "@/src/domain/repositories/product.repository";
-// import { FindProductBySizeInputDto, FindProductOutputDto } from "../dto/product-find.dto";
+// import { FindProductByMaterialIdInputDto, FindProductOutputDto } from "../dto/product-find.dto";
 
-// type FindProductBySizeProps = {
-//     size: string,
-// }
-
-// export class FindProductBySizeUseCase {
+// export class FindProductsByMaterialUseCase {
 //     constructor(
 //         private productRepository: ProductRepository,
 //     ) { }
 
-//     async execute(input: FindProductBySizeInputDto): Promise<FindProductOutputDto[]> {
-//         if (!input.size?.trim()) throw new Error("Product size cannot be empty");
-//         const products = await this.productRepository.findBySize(input.size);
+//     async execute(input: FindProductByMaterialIdInputDto): Promise<FindProductOutputDto[]> {
+//         if (!input.materialId?.trim()) throw new Error("Product material cannot be empty");
+//         const products = await this.productRepository.findByMaterialId(input.materialId);
 
 //         return products.map(p => ({
 //             id: p.id,

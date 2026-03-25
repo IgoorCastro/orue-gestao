@@ -9,4 +9,7 @@ export type CreateProductStockOutuputDto = {
     stockId: string,
     productId: string,
     quantity: number,
+    createdAt: Date,
+    updatedAt: Date,
+    deletedAt?: Date,
 }
