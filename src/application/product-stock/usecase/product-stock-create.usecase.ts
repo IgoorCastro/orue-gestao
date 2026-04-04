@@ -4,7 +4,7 @@
 import { ProductStockRepository } from "@/src/domain/repositories/product-stock.repository";
 import { CreateProductStockInputDto, CreateProductStockOutuputDto } from "../dto/product-stock-create.dto";
 import { ProductStock } from "@/src/domain/entities/product-stock.entity";
-import { UuidGenerator } from "@/src/domain/services/uuid-generator.services";
+import { UuidGeneratorServices } from "@/src/domain/services/uuid-generator.services";
 import { ValidationError } from "@/src/domain/errors/validation.error";
 import { ProductRepository } from "@/src/domain/repositories/product.repository";
 import { StockRepository } from "@/src/domain/repositories/stock.repository";
@@ -16,7 +16,7 @@ export class CreateProductStockUseCase {
         private productStockRepository: ProductStockRepository,
         private productRepository: ProductRepository,
         private stockRepository: StockRepository,
-        private uuid: UuidGenerator,
+        private uuid: UuidGeneratorServices,
     ) { }
 
     async execute(input: CreateProductStockInputDto): Promise<CreateProductStockOutuputDto> {
@@ -41,7 +41,7 @@ export class CreateProductStockUseCase {
             stockId: input.stockId,
         });
 
-        await this.productStockRepository.create(productStock);
+        await this.productStockRepository.save(productStock);
 
         return {
             id: productStock.id,

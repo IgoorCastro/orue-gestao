@@ -2,7 +2,7 @@
 // props esperadas: name
 
 import { ColorRepository } from "@/src/domain/repositories/color.repository";
-import { UuidGenerator } from "@/src/domain/services/uuid-generator.services";
+import { UuidGeneratorServices } from "@/src/domain/services/uuid-generator.services";
 import { CreateColorInputDto, CreateColorOutputDto } from "../dto/color-create.dto";
 import { Color } from "@/src/domain/entities/color.entity";
 import { ValidationError } from "@/src/domain/errors/validation.error";
@@ -11,7 +11,7 @@ import { ConflictError } from "@/src/domain/errors/conflict.error";
 export class CreateColorUseCase {
     constructor(
         private colorRepository: ColorRepository,
-        private uuid: UuidGenerator,
+        private uuid: UuidGeneratorServices,
     ) { }
 
     async execute({ name }: CreateColorInputDto): Promise<CreateColorOutputDto> {
@@ -31,6 +31,7 @@ export class CreateColorUseCase {
         return {
             id: color.id,
             name: color.name,
+            normalizedName: color.normalizedName,
         }
     }
 }

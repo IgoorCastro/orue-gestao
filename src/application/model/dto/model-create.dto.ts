@@ -5,4 +5,5 @@ export type CreateModelInputDto = {
 export type CreateModelOutputDto = {
     id: string,
     name: string,
+    normalizedName: string,
 }

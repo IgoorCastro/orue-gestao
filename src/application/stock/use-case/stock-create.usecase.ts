@@ -4,18 +4,21 @@
 // estoque do tipo loja precisa de uma loja vinculada a ele
 
 import { StockRepository } from "@/src/domain/repositories/stock.repository";
-import { UuidGenerator } from "@/src/domain/services/uuid-generator.services";
+import { UuidGeneratorServices } from "@/src/domain/services/uuid-generator.services";
 import { CreateStockInputDto, CreateStockOutputDto } from "../dto/stock-create.dto";
 import { Stock } from "@/src/domain/entities/stock.entity";
 import normalizeName from "@/src/domain/utils/normalize-name";
 import { ValidationError } from "@/src/domain/errors/validation.error";
 import { StockType } from "@/src/domain/enums/stock-type.enum";
 import { ConflictError } from "@/src/domain/errors/conflict.error";
+import { StoreRepository } from "@/src/domain/repositories/store.repository";
+import { NotFoundError } from "@/src/domain/errors/not-found.error";
 
 export class CreateStockUseCase {
     constructor(
         private stockRepository: StockRepository,
-        private uuid: UuidGenerator,
+        private storeRepository: StoreRepository,
+        private uuid: UuidGeneratorServices,
     ) { }
 
     async execute(input: CreateStockInputDto): Promise<CreateStockOutputDto> {
@@ -27,9 +30,16 @@ export class CreateStockUseCase {
         // estoque MAIN nao precisa de uma loja vinculada
         if (input.type === StockType.MAIN && input.storeId) throw new ValidationError("Main stock cannot have a storeId");
 
+        // validação da loja
+        // estoque main não precisa de loja vinculada
+        if (input.storeId !== undefined) {
+            const exists = await this.storeRepository.findById(input.storeId);
+            if(!exists) throw new NotFoundError("Store not found");            
+        }
+
         const formattedName = normalizeName(input.name);
         const exists = await this.stockRepository.findByName(formattedName); // procura por estoque com o msm nome
-        if (exists) throw new ConflictError("Stock name already exists");
+        if (exists.length) throw new ConflictError("Stock name already exists");
 
         const stock = Stock.create({
             id: this.uuid.generate(),
@@ -38,7 +48,7 @@ export class CreateStockUseCase {
             storeId: input.storeId,
         });
 
-        await this.stockRepository.create(stock);
+        await this.stockRepository.save(stock);
 
         return {
             id: stock.id,

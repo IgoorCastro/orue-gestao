@@ -31,10 +31,10 @@ export class UpdateColorUseCase {
 
         // evita duplicidade de registros com o msm nome
         const exists = await this.colorRepository.findByName(formattedName);
-        if (exists) throw new ConflictError("Color name already exists");
+        console.log("EXISTS: ", exists)
+        if (exists.length > 0) throw new ConflictError("Color name already exists");
 
         color.rename(formattedName);
-        
 
         await this.colorRepository.save(color);
 
@@ -44,3 +44,4 @@ export class UpdateColorUseCase {
         }
     }
 }
+

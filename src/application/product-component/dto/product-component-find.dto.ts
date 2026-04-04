@@ -10,6 +10,11 @@ export type FindProductComponentByComponentInputDto = Readonly<{
     componentId: string,
 }>;
 
+export type FindProductComponentFilteredDto = Readonly<{
+    parentId?: string,
+    componentId?: string,
+}>
+
 export type FindProductComponentOutputDto = Readonly<{
     id: string,
     parentProductId: string,

@@ -15,6 +15,12 @@ export type FindProductStockByProductAndStockIdInputDto = Readonly<{
     productId: string,
 }>;
 
+export type FindProductStockFilteredDto = Readonly<{
+    stockId?: string,
+    productId?: string,
+}>
+
+
 export type FindProductStockOutputDto = Readonly<{
     id: string,
     stockId: string,

@@ -1,5 +1,5 @@
 import { MaterialRepository } from "@/src/domain/repositories/material.repository";
-import { SaveMaterialDto } from "../dto/material-save.dto";
+import { SaveMaterialInputDto, SaveMaterialOutputDto } from "../dto/material-save.dto";
 import { ValidationError } from "@/src/domain/errors/validation.error";
 import { NotFoundError } from "@/src/domain/errors/not-found.error";
 import { ConflictError } from "@/src/domain/errors/conflict.error";
@@ -10,7 +10,7 @@ export class UpdateMaterialUseCase {
         private materialRepository: MaterialRepository,
     ) { }
 
-    async execute({ id, name }: SaveMaterialDto): Promise<SaveMaterialDto> {
+    async execute({ id, name }: SaveMaterialInputDto): Promise<SaveMaterialOutputDto> {
         if(!id?.trim()) throw new ValidationError("Id cannot be empty");
 
         const material = await this.materialRepository.findById(id);
@@ -19,6 +19,7 @@ export class UpdateMaterialUseCase {
         if(name === undefined) return {
             id: material.id,
             name: material.name,
+            normalizedName: material.normalizedName,
         }
 
         const formattedName = normalizeName(name);
@@ -27,19 +28,21 @@ export class UpdateMaterialUseCase {
         if(formattedName === material.name) return {
             id: material.id,
             name: material.name,
+            normalizedName: material.normalizedName,
         }
 
         // evita duplicidade de registros com o msm nome
         const exists = await this.materialRepository.existsByName(name);
         if (exists) throw new ConflictError("Material already exists");
 
-        material.rename(formattedName);
+        material.rename(name);
 
         await this.materialRepository.save(material);
 
         return {
             id: material.id,
             name: material.name,
+            normalizedName: material.normalizedName,
         }
     }
 }

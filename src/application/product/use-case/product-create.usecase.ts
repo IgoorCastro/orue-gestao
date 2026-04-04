@@ -1,10 +1,8 @@
 import { ProductRepository } from "@/src/domain/repositories/product.repository";
-import { UuidGenerator } from "@/src/domain/services/uuid-generator.services";
+import { UuidGeneratorServices } from "@/src/domain/services/uuid-generator.services";
 import { CreateProductInputDto, CreateProductOutputDto } from "../dto/product-create.dto";
 import { Product } from "@/src/domain/entities/product.entity";
-import { DefaultSkuGenerator } from "@/src/domain/services/default-sku-generator";
 import { ColorRepository } from "@/src/domain/repositories/color.repository";
-import { SizeRepository } from "@/src/domain/repositories/size.repository";
 import { MaterialRepository } from "@/src/domain/repositories/material.repository";
 import { ModelRepository } from "@/src/domain/repositories/model.repository";
 import { SkuGeneratorService } from "@/src/domain/services/sku-generator.services";
@@ -19,7 +17,7 @@ export class CreateProductUseCase {
         private colorRepository: ColorRepository,
         private materialRepository: MaterialRepository,
         private modelRepository: ModelRepository,
-        private uuid: UuidGenerator,
+        private uuid: UuidGeneratorServices,
         private sku: SkuGeneratorService,
         private barcode: BarcodeGeneratorService,
     ) { }
@@ -37,7 +35,7 @@ export class CreateProductUseCase {
         ])
 
         // valida o produto pelo nome
-        if (existingProduct) throw new ConflictError("Product already exists");
+        // if (existingProduct) throw new ConflictError("Product already exists");
 
         // validação do modelo
         if (!model) throw new NotFoundError("Model not found");
@@ -54,10 +52,10 @@ export class CreateProductUseCase {
         let exists = true;
         // roda até gerar um bc disponivel
         while (exists) {
-            bc = this.barcode.generete();
+            bc = await this.barcode.generate();
             exists = await this.productRepository.existsByBarcode(bc); // true para positivo
         }
-
+        
         const product = Product.create({
             id: this.uuid.generate(),
             name: name,
@@ -70,6 +68,7 @@ export class CreateProductUseCase {
                 material: materials.map(m => m.name),
                 size: size,
                 color: colors.map(c => c.name),
+                type: type,
             }),
             barcode: bc,
             size: size,
@@ -77,21 +76,23 @@ export class CreateProductUseCase {
             mlProductId: mlProductId,
         });
 
+
         // adiciona os ids dos materiais na entidade
         materialIds.forEach(materialId => product.addMaterial({ materialId }));
 
         // adiciona os ids das cores na entidade
         colorIds.forEach(colorId => product.addColor({ colorId }));
 
-        await this.productRepository.save(product);
+        await this.productRepository.create(product);
 
         return {
             id: product.id,
             sku: product.sku,
             name: product.name,
+            normalizedName: product.normalizedName,
             price: product.price,
             colorIds: product.colors,
-            size: product.size,
+            size: product.size ?? undefined,
             materialIds: product.materials,
             modelId: product.modelId,
             barcode: product.barcode,

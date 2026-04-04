@@ -5,4 +5,5 @@ export type CreateColorInputDto = {
 export type CreateColorOutputDto = {
     id: string,
     name: string,
+    normalizedName: string,
 }

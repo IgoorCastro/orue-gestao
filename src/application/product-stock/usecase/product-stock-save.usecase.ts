@@ -16,9 +16,11 @@ export class UpdateProductStockUseCase {
     async execute(input: UpdateProductStockInputDto): Promise<UpdateProductStockOutputDto> {
         if (!input.id?.trim()) throw new ValidationError("Id cannot be empty");
 
+        // vericia a existencia do Product Stock
         const ps = await this.productStockRepository.findById(input.id);
         if (!ps) throw new NotFoundError("Product stock not found");
 
+        
         const newProductId = input.productId ?? ps.productId;
         const newStockId = input.stockId ?? ps.stockId;
 

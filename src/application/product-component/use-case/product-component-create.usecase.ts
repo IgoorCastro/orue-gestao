@@ -9,7 +9,7 @@ import { ProductComponentRepository } from "@/src/domain/repositories/product-co
 import { CreateProductComponentInputDto, CreateProductComponentOutputDto } from "../dto/product-component-create.dto";
 import { ProductRepository } from "@/src/domain/repositories/product.repository";
 import { ProductComponent } from "@/src/domain/entities/product-component";
-import { UuidGenerator } from "@/src/domain/services/uuid-generator.services";
+import { UuidGeneratorServices } from "@/src/domain/services/uuid-generator.services";
 import { ProductType } from "@/src/domain/enums/product-type.enum";
 import { ValidationError } from "@/src/domain/errors/validation.error";
 import { ConflictError } from "@/src/domain/errors/conflict.error";
@@ -19,10 +19,11 @@ export class CreateProductComponentUseCase {
     constructor(
         private productComponentRepository: ProductComponentRepository,
         private productRepository: ProductRepository,
-        private uuid: UuidGenerator,
+        private uuid: UuidGeneratorServices,
     ) { }
 
     async execute({ componentProductId, parentProductId, quantity }: CreateProductComponentInputDto): Promise<CreateProductComponentOutputDto> {
+        if(componentProductId === undefined || parentProductId === undefined) throw new ValidationError("Product and component id is required");
         if (parentProductId === componentProductId) throw new ValidationError("Product cannot be a component of itself");
         if (quantity < 1) throw new ValidationError("Quantity must be greater than zero");
 
@@ -30,7 +31,7 @@ export class CreateProductComponentUseCase {
             this.productRepository.findById(parentProductId),
             this.productRepository.findById(componentProductId),
         ]);
-
+        
         // teste produto existente
         if (!parentProduct) throw new NotFoundError("Parent product not found"); // produto nao encontrado
         if (parentProduct.type === ProductType.PRODUCT) throw new ValidationError("Product cannot have components"); // produto tipo produto não pode gerar composição

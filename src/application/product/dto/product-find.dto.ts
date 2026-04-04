@@ -14,12 +14,20 @@ export type FindProductBySkuInputDto = Readonly<{
 }>
 
 export type FindProductFilteredDto = Readonly<{
+    name?: string,
     colorIds?: string[];
     materialIds?: string[];
-    modelId?: string;
+    modelIds?: string[];
     size?: ProductSize;
+    type?: ProductType,
+    barcode?: string,
+    mlProductId?: string,
     page?: number;
     limit?: number;
+    price?: {
+        gte?: number,
+        lte?: number,
+    },
     orderBy?: {
         field: "name" | "price" | "createdAt";
         direction: "asc" | "desc";
@@ -32,12 +40,15 @@ export type FindProductOutputDto = Readonly<{
     name: string,
     price: number,
     colorIds: string[],
-    size: ProductSize,
+    size?: ProductSize,
     type: ProductType,
     materialIds: string[],
     modelId: string,
     mlProductId?: string,
     barcode?: string,
+    createdAt: Date,
+    updatedAt: Date,
+    deletedAt?: Date,
 }>
 
 export type FindProductListOutputDto = Readonly<{

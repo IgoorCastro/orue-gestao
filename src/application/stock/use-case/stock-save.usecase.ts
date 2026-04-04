@@ -5,10 +5,12 @@ import { NotFoundError } from "@/src/domain/errors/not-found.error";
 import { StockType } from "@/src/domain/enums/stock-type.enum";
 import normalizeName from "@/src/domain/utils/normalize-name";
 import { ConflictError } from "@/src/domain/errors/conflict.error";
+import { StoreRepository } from "@/src/domain/repositories/store.repository";
 
 export class UpdateStockUseCase {
     constructor(
         private stockRepository: StockRepository,
+        private storeRepository: StoreRepository,
     ) { }
 
     async execute(input: SaveStockInputDto): Promise<SaveStockOutputDto> {
@@ -17,6 +19,15 @@ export class UpdateStockUseCase {
 
         const stock = await this.stockRepository.findById(input.id);
         if(!stock) throw new NotFoundError("Stock not found");
+
+
+        // validação de existencia da nova loja
+        if(input.storeId !== undefined) {
+            const exists = await this.storeRepository.findById(input.storeId);
+            if(!exists) throw new NotFoundError("Store not found");
+
+            stock.changeStoreId(input.storeId);
+        }
 
         // Validação para update no nome
         if(input.name !== undefined) {

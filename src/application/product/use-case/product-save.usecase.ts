@@ -4,13 +4,12 @@ import { SkuGeneratorService } from "@/src/domain/services/sku-generator.service
 import { MaterialRepository } from "@/src/domain/repositories/material.repository";
 import { ColorRepository } from "@/src/domain/repositories/color.repository";
 import { ModelRepository } from "@/src/domain/repositories/model.repository";
-import { BarcodeGeneratorService } from "@/src/domain/services/barcode-generator.services";
 import { ValidationError } from "@/src/domain/errors/validation.error";
 import { NotFoundError } from "@/src/domain/errors/not-found.error";
 import normalizeName from "@/src/domain/utils/normalize-name";
 import { ConflictError } from "@/src/domain/errors/conflict.error";
 
-export class SaveProductUseCase {
+export class UpdateProductUseCase {
     constructor(
         private productRepository: ProductRepository,
         private colorRepository: ColorRepository,
@@ -31,7 +30,7 @@ export class SaveProductUseCase {
         if (name !== undefined) {
             const formattedName = normalizeName(name);
             const exists = await this.productRepository.findByName(formattedName);
-            if(exists) throw new ConflictError("Product name already exists");
+            if(exists.length > 0) throw new ConflictError("Product name already exists");
             
             product.rename(name);
             shouldRecalculateSku = true;

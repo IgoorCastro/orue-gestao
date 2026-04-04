@@ -5,4 +5,5 @@ export type CreateMeterialInputDto = {
 export type CreateMaterialOutputDto = {
     id: string,
     name: string,
+    normalizedName: string,
 }

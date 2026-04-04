@@ -9,4 +9,8 @@ export type FindModelByNameInputDto = Readonly<{
 export type FindModelOutputDto = Readonly<{
     id: string,
     name: string,
+    normalizedName: string,
+    createdAt: Date,
+    updatedAt: Date,
+    deletedAt?: Date,
 }>

@@ -1,5 +1,5 @@
 import { ModelRepository } from "@/src/domain/repositories/model.repository";
-import { UuidGenerator } from "@/src/domain/services/uuid-generator.services";
+import { UuidGeneratorServices } from "@/src/domain/services/uuid-generator.services";
 import { CreateModelInputDto, CreateModelOutputDto } from "../dto/model-create.dto";
 import { Model } from "@/src/domain/entities/model.entity";
 import { ValidationError } from "@/src/domain/errors/validation.error";
@@ -8,7 +8,7 @@ import { ConflictError } from "@/src/domain/errors/conflict.error";
 export class CreateModelUseCase {
     constructor(
         private modelRepository: ModelRepository,
-        private uuid: UuidGenerator,
+        private uuid: UuidGeneratorServices,
     ) { }
 
     async execute({ name }: CreateModelInputDto): Promise<CreateModelOutputDto> {
@@ -22,11 +22,12 @@ export class CreateModelUseCase {
             name: name,
         })
 
-        await this.modelRepository.create(model);
+        await this.modelRepository.save(model);
 
         return {
             id: model.id,
             name: model.name,
+            normalizedName: model.normalizedName,
         }
     }
 }
