@@ -1,3 +1,3 @@
 export interface BarcodeGeneratorService {
-    generete(): string;
+    generate(): Promise<string>;
 }

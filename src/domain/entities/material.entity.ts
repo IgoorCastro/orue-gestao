@@ -5,6 +5,7 @@ import normalizeName from "../utils/normalize-name";
 type MaterialProps = Readonly<{
     id: string;
     name: string,
+    normalizedName: string,
     createdAt: Date,
     updatedAt: Date,
     deletedAt?: Date,
@@ -14,20 +15,22 @@ type MaterialProps = Readonly<{
 export class Material {
     private readonly _id: string;
     private _name: string;
+    private _normalizedName: string;
     private _createdAt: Date;
     private _updatedAt: Date;
     private _deletedAt?: Date;
 
-    private constructor({ id, name, createdAt, updatedAt, deletedAt }: MaterialProps) {
-        if (!id?.trim()) throw new ValidationError("Id cannot be empty");
+    private constructor(props: MaterialProps) {
+        if (!props.id?.trim()) throw new ValidationError("Id cannot be empty");
         // manter o validate para testar o restore!
-        Material.validateName(name);
+        Material.validateName(props.name);
 
-        this._id = id;
-        this._name = name;
-        this._createdAt = createdAt;
-        this._updatedAt = updatedAt;
-        this._deletedAt = deletedAt;
+        this._id = props.id;
+        this._name = props.name;
+        this._normalizedName = props.normalizedName;
+        this._createdAt = props.createdAt;
+        this._updatedAt = props.updatedAt;
+        this._deletedAt = props.deletedAt;
     }
 
     // create (novo material)
@@ -37,6 +40,7 @@ export class Material {
         return new Material({
             id: props.id,
             name: Material.formatName(props.name),
+            normalizedName: Material.formatNormalizedName(props.name),
             createdAt: now,
             updatedAt: now,
             deletedAt: undefined,
@@ -56,13 +60,24 @@ export class Material {
         return this._name;
     }
 
+    // altera e valida o nome
+    // normalizedName tbm deve ser alterado
+    // aletração de nome deve refletir no normalizedNome
     rename(name: string): void {
+        console.log("rename ~~ name: ", name)
         this.ensureNotDeleted();
-        const formattedName = Material.formatName(name);
-        if (this._name === formattedName) return;
+        const capitalizedName = Material.formatName(name);
+        const normalizedName = Material.formatNormalizedName(name);
+        if (normalizedName === this._normalizedName) return;
+        if (capitalizedName === this._name) return;
 
-        this._name = formattedName;
+        this._name = capitalizedName;
+        this._normalizedName = normalizedName;
         this.touch();
+    }
+
+    get normalizedName(): string {
+        return this._normalizedName;
     }
 
     get createdAt(): Date {
@@ -86,7 +101,7 @@ export class Material {
     }
 
     restoreDeleted(): void {
-        if(!this._deletedAt) return;
+        if (!this._deletedAt) return;
 
         this._deletedAt = undefined;
         this.touch();
@@ -100,9 +115,21 @@ export class Material {
         if (!name?.trim()) throw new ValidationError("Material name cannot be empty");
     }
 
+    // altera a primeira letra do name
     private static formatName(name: string): string {
+        console.log("formatName ~~ name: ", name)
+        const normalized = capitalizeFirstLetter(name);
+        Material.validateName(normalized);
+        console.log("formatName ~~ normalized: ", normalized)
+
+        return normalized;
+    }
+
+    // formata todo o name para padronizar no db
+    private static formatNormalizedName(name: string): string {
         const normalized = normalizeName(name);
         Material.validateName(normalized);
+        console.log("formatNormalizedName ~~ normalized: ", normalized)
 
         return normalized;
     }

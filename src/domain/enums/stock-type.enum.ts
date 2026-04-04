@@ -1,5 +1,5 @@
 // padronização dos tipos de estoque
 export enum StockType {
-    MAIN = "main",
-    STORE = "store",
+    MAIN = "MAIN",
+    STORE = "STORE",
 }

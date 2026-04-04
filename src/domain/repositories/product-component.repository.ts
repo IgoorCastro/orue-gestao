@@ -8,6 +8,7 @@ export interface ProductComponentRepository {
     findByComponentProductId(componentProductId: string): Promise<ProductComponent[]>;
     // contrato para trabalhar com produto pai e filhos
     findByParentAndComponentProductId(parentId: string, componentId: string): Promise<ProductComponent | null>;
+    findMany(filters: { parentId?: string; componentId?: string; }): Promise<ProductComponent[]>;
     exists(parentId: string, componentId: string, ignoreId?: string): Promise<boolean>
     save(item: ProductComponent): Promise<void>;
 }

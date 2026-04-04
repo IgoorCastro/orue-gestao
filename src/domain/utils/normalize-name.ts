@@ -8,6 +8,7 @@
  */
 
 export default function normalizeName(name: string): string {
+    if(name === undefined) return "";
     return name
         .trim()
         .toLowerCase()

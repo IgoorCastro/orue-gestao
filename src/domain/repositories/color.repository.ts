@@ -2,11 +2,13 @@
 import { Color } from "../entities/color.entity";
 
 export interface ColorRepository {
-    create(color: Color): Promise<void>;
     findById(id: string): Promise<Color | null>;
     findByIds(ids: string[]): Promise<Color[]>;
     findByName(name: string): Promise<Color[]>;
-    existsByName(name: string): Promise<boolean>;
+    findByNames(name: string[]): Promise<Color[]>;
+    // findByNames(names: string[]): Promise<Color[]>;
     findAll(): Promise<Color[]>;
+    findMany(filters: { name?: string }): Promise<Color[]>;
+    existsByName(name: string): Promise<boolean>;
     save(color: Color): Promise<void>;
 }

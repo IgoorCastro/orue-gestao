@@ -126,7 +126,7 @@ export class ProductComponent {
     }
 
     restoreDeleted(): void {
-        if (!this._deletedAt) return;
+        if (this.isActive()) return;
 
         this._deletedAt = undefined;
         this.touch();

@@ -6,4 +6,5 @@ export interface StoreRepository {
     findById(id: string): Promise<Store | null>;
     findByName(name: string): Promise<Store[]>;
     findAll(): Promise<Store[]>;
+    findMany(filters: { name?: string }): Promise<Store[]>;
 }

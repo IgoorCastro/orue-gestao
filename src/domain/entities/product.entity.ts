@@ -14,8 +14,9 @@ type ProductProps = Readonly<{
     id: string,
     sku: string,
     name: string,
+    normalizedName: string,
     price: number,
-    size: ProductSize,
+    size?: ProductSize,
     modelId: string,
     mlProductId?: string,
     barcode?: string,
@@ -28,9 +29,10 @@ type ProductProps = Readonly<{
 export class Product {
     private readonly _id: string;
     private _name: string;
+    private _normalizedName: string;
     private _type: ProductType;
     private _price: number;
-    private _size: ProductSize;
+    private _size?: ProductSize;
     private _modelId: string;
     private _materialIds: string[];
     private _colorIds: string[];
@@ -43,16 +45,17 @@ export class Product {
 
     private constructor(props: ProductProps) {
         if (!props.id?.trim()) throw new ValidationError("Id cannot be empty");
-        this.validateSize(props.size);
         this.validateModel(props.modelId);
-        Product.validateName(props.name);
+        // Product.validateName(props.name);
         this.validatePrice(props.price);
         this.validateSku(props.sku);
         this.validateType(props.type);
         if (props.barcode !== undefined) this.validateBarCode(props.barcode);
+        if (props.size !== undefined) this.validateSize(props.size);
 
         this._id = props.id;
         this._name = props.name;
+        this._normalizedName = props.normalizedName;
         this._price = props.price;
         this._type = props.type;
         this._sku = props.sku;
@@ -73,7 +76,7 @@ export class Product {
         price: number,
         type: ProductType,
         sku: string,
-        size: ProductSize,
+        size?: ProductSize,
         modelId: string,
         mlProductId?: string,
         barcode?: string,
@@ -83,6 +86,7 @@ export class Product {
         return new Product({
             id: props.id,
             name: Product.formatName(props.name),
+            normalizedName: Product.formatNormalizedName(props.name),
             price: props.price,
             type: props.type,
             sku: props.sku,
@@ -126,14 +130,25 @@ export class Product {
         return this._name;
     }
 
+    // altera e valida o nome
+    // normalizedName tbm deve ser alterado
+    // aletração de nome deve refletir no normalizedNome
     rename(name: string): void {
         this.ensureNotDeleted();
-        const formattedName = Product.formatName(name);
-        if (formattedName === this._name) return;
+        const normalizedName = Product.formatNormalizedName(name);
+        const capitalizedName = Product.formatName(name);
+        if (normalizedName === this._normalizedName) return;
+        if (capitalizedName === this._name) return;
 
-        this._name = formattedName;
+        this._name = capitalizedName;
+        this._normalizedName = normalizedName;
         this.touch();
     }
+
+    get normalizedName(): string {
+        return this._normalizedName;
+    }
+
 
     get price(): number {
         return this._price;
@@ -162,7 +177,7 @@ export class Product {
         this.touch();
     }
 
-    get size(): ProductSize {
+    get size(): ProductSize | undefined {
         return this._size;
     }
 
@@ -221,6 +236,7 @@ export class Product {
         return [...this._colorIds];
     }
 
+    // adiciona somente uma cor
     addColor(input: { colorId: string }): void {
         this.ensureNotDeleted();
         if (!input.colorId?.trim()) throw new ValidationError("Color id cannot be empty");
@@ -231,6 +247,7 @@ export class Product {
         this.touch();
     }
 
+    // altera toda a estrutura de cores
     changeColors(colorIds: string[]): void {
         this.ensureNotDeleted();
 
@@ -368,9 +385,18 @@ export class Product {
         if (!Object.values(ProductType).includes(type)) throw new ValidationError("Product type is invalid");
     }
 
+    // altera a primeira letra do name
     private static formatName(name: string): string {
+        const normalized = capitalizeFirstLetter(name);
+        // Product.validateName(normalized);
+
+        return normalized;
+    }
+
+    // formata todo o name para padronizar no db
+    private static formatNormalizedName(name: string): string {
         const normalized = normalizeName(name);
-        Product.validateName(normalized);
+        // Product.validateName(normalized);
 
         return normalized;
     }

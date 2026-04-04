@@ -3,12 +3,16 @@ import { UserRole } from "../enums/user-role.enum";
 import { ValidationError } from "../errors/validation.error";
 import capitalizeFirstLetter from "../utils/capitalize-first-letter";
 import normalizeName from "../utils/normalize-name";
+import { Password } from "../value-objects/password.vo";
 
 // readonly para garantir a imutabilidade da entrada
 // props chegam, são validadas e não mudam!
 type UserProps = Readonly<{
     id: string,
     name: string,
+    nickname: string,
+    normalizedName: string,
+    password: Password,
     role: UserRole,
     createdAt: Date,
     updatedAt: Date,
@@ -18,6 +22,9 @@ type UserProps = Readonly<{
 export class User {
     private readonly _id: string;
     private _name: string;
+    private _nickname: string;
+    private _normalizedName: string;
+    private _password: Password;
     private _role: UserRole;
     private _createdAt: Date;
     private _updatedAt: Date;
@@ -26,11 +33,16 @@ export class User {
     private constructor(props: UserProps) {
         if (!props.id?.trim()) throw new ValidationError("Id cannot be empty");
         this.validateRole(props.role);
+        User.validatePassword(props.password);
+        User.validateNickname(props.nickname);
         User.validateName(props.name);
-        
+
 
         this._id = props.id;
         this._name = props.name;
+        this._password = props.password;
+        this._nickname = props.nickname;
+        this._normalizedName = props.normalizedName;
         this._role = props.role;
         this._createdAt = props.createdAt;
         this._updatedAt = props.updatedAt;
@@ -38,12 +50,18 @@ export class User {
     }
 
     // utilizar para criar uma nova entidade
-    static create(props: { id: string, name: string, role: UserRole }): User {
+    static create(props: {
+        id: string, name: string, password: Password, nickname: string, role: UserRole
+    }): User {
+        console.log(props)
         const now = new Date();
 
         return new User({
             id: props.id,
             name: User.formatName(props.name),
+            normalizedName: User.formatNormalizedName(props.name),
+            password: props.password,
+            nickname: props.nickname.toLowerCase(),
             role: props.role,
             createdAt: now,
             updatedAt: now,
@@ -64,13 +82,45 @@ export class User {
         return this._name;
     }
 
+    // altera e valida o nome
+    // normalizedName tbm deve ser alterado
+    // aletração de nome deve refletir no normalizedNome
     rename(name: string): void {
         this.ensureNotDeleted();
-        const formattedName = User.formatName(name);
-        if (formattedName === this._name) return;
+        const normalizedName = User.formatNormalizedName(name);
+        const capitalizedName = User.formatName(name);
+        if (normalizedName === this._normalizedName) return;
+        if (capitalizedName === this._name) return;
 
-        this._name = formattedName;
+        this._name = capitalizedName;
+        this._normalizedName = normalizedName;
         this.touch();
+    }
+
+    get normalizedName(): string {
+        return this._normalizedName;
+    }
+
+    get password(): Password {
+        return this._password;
+    }
+
+    changePassword(password: Password): void {
+        this.ensureNotDeleted();
+        User.validatePassword(password);
+
+        this._password = password;
+    }
+
+    get nickname(): string {
+        return this._nickname;
+    }
+
+    changeNickname(nickname: string): void {
+        this.ensureNotDeleted();
+        User.validateNickname(nickname);
+
+        this._nickname = normalizeName(nickname);
     }
 
     get role(): UserRole {
@@ -107,6 +157,7 @@ export class User {
 
     // soft delete do estoque
     delete(): void {
+        if(this._role === UserRole.ADMIN) throw new Error("Cannot delete admin user");
         this.ensureNotDeleted();
 
         this._deletedAt = new Date();
@@ -115,7 +166,7 @@ export class User {
 
     // reativa o estoque
     restoreDeleted(): void {
-        if (!this._deletedAt) return;
+        if (this.isActive()) return;
 
         this._deletedAt = undefined;
         this.touch();
@@ -127,11 +178,29 @@ export class User {
     }
 
     private static validateName(name: string): void {
-        if (!name?.trim()) throw new ValidationError("Name cannot be empty");
+        if (!name?.trim() || name === undefined) throw new ValidationError("Name cannot be empty");
         if (name.trim().length < 3) throw new ValidationError("Name must be at least 3 characters");
     }
 
+    private static validatePassword(password: Password): void {
+        if (!password.getValue()?.trim() || password === undefined) throw new ValidationError("Password cannot be empty");
+    }
+
+    private static validateNickname(nickname: string): void {
+        if (!nickname?.trim() || nickname === undefined) throw new ValidationError("Nickname cannot be empty");
+        if (nickname.trim().length < 2) throw new ValidationError("Nickname must be at least 3 characters");
+    }
+
+    // altera a primeira letra do name
     private static formatName(name: string): string {
+        const normalized = capitalizeFirstLetter(name);
+        User.validateName(normalized);
+
+        return normalized;
+    }
+
+    // formata todo o name para padronizar no db
+    private static formatNormalizedName(name: string): string {
         const normalized = normalizeName(name);
         User.validateName(normalized);
 
@@ -143,7 +212,7 @@ export class User {
     }
 
     private ensureNotDeleted(): void {
-        if (!this.isActive) throw new ValidationError("Product is deleted");
+        if (!this.isActive) throw new ValidationError("User is deleted");
     }
 
     private touch(): void {

@@ -8,5 +8,5 @@
 
 export default function capitalizeFirstLetter(input: string) {
     const trimmed = input.trim();
-    return trimmed.charAt(0).toUpperCase + trimmed.slice(1);
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 }

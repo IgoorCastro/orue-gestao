@@ -1,5 +1,5 @@
 export enum ProductType {
-    PRODUCT = "product",
-    KIT = "kit",
-    PACKAGE = "package",
+    PRODUCT = "PRODUCT",
+    KIT = "KIT",
+    PACKAGE = "PACKAGE",
 }

@@ -6,6 +6,7 @@ import normalizeName from "../utils/normalize-name";
 type ColorProps = Readonly<{
     id: string;
     name: string;
+    normalizedName: string,
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
@@ -14,21 +15,23 @@ type ColorProps = Readonly<{
 export class Color {
     private readonly _id: string;
     private _name: string;
+    private _normalizedName: string;
     private _createdAt: Date;
     private _updatedAt: Date;
     private _deletedAt?: Date;
 
     // constructor é interno
-    private constructor({ id, name, createdAt, updatedAt, deletedAt }: ColorProps) {
-        if (!id?.trim()) throw new ValidationError("Id cannot be empty");
+    private constructor(props: ColorProps) {
+        if (!props.id?.trim()) throw new ValidationError("Id cannot be empty");
         // manter o validate para testar o restore!
-        Color.validateName(name);
+        Color.validateName(props.name);
 
-        this._id = id;
-        this._name = name;
-        this._createdAt = createdAt;
-        this._updatedAt = updatedAt;
-        this._deletedAt = deletedAt;
+        this._id = props.id;
+        this._name = props.name;
+        this._normalizedName = props.normalizedName;
+        this._createdAt = props.createdAt;
+        this._updatedAt = props.updatedAt;
+        this._deletedAt = props.deletedAt;
     }
 
     // CREATE (novo objeto)
@@ -38,6 +41,7 @@ export class Color {
         return new Color({
             id: props.id,
             name: Color.formatName(props.name),
+            normalizedName: Color.formatNormalizedName(props.name),
             createdAt: now,
             updatedAt: now,
             deletedAt: undefined,
@@ -57,13 +61,23 @@ export class Color {
         return this._name;
     }
 
+    // altera e valida o nome
+    // normalizedName tbm deve ser alterado
+    // aletração de nome deve refletir no normalizedNome
     rename(name: string): void {
         this.ensureNotDeleted();
-        const formattedName = Color.formatName(name);
-        if (this._name === formattedName) return;
+        const normalizedName = Color.formatNormalizedName(name);
+        const capitalizedName = Color.formatName(name);
+        if (normalizedName === this._normalizedName) return;
+        if (capitalizedName === this._name) return;
 
-        this._name = formattedName;
+        this._name = capitalizedName;
+        this._normalizedName = normalizedName;
         this.touch();
+    }
+
+    get normalizedName(): string {
+        return this._normalizedName;
     }
 
     get createdAt(): Date {
@@ -88,7 +102,7 @@ export class Color {
 
     // reativar
     restoreDeleted(): void {
-        if(!this._deletedAt) return;
+        if (this.isActive()) return;
 
         this._deletedAt = undefined;
         this.touch();
@@ -99,10 +113,19 @@ export class Color {
     }
 
     private static validateName(name: string) {
-        if(!name?.trim()) throw new ValidationError("Color cannot be empty");
+        if (!name?.trim()) throw new ValidationError("Color cannot be empty");
     }
 
+    // altera a primeira letra do name
     private static formatName(name: string): string {
+        const normalized = capitalizeFirstLetter(name);
+        Color.validateName(normalized);
+
+        return normalized;
+    }
+
+    // formata todo o name para padronizar no db
+    private static formatNormalizedName(name: string): string {
         const normalized = normalizeName(name);
         Color.validateName(normalized);
 

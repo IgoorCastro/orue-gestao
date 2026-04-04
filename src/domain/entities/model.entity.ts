@@ -5,6 +5,7 @@ import normalizeName from "../utils/normalize-name";
 type ModelProps = Readonly<{
     id: string,
     name: string,
+    normalizedName: string,
     createdAt: Date,
     updatedAt: Date,
     deletedAt?: Date,
@@ -14,6 +15,7 @@ type ModelProps = Readonly<{
 export class Model {
     private readonly _id: string;
     private _name: string;
+    private _normalizedName: string;
     private _createdAt: Date;
     private _updatedAt: Date;
     private _deletedAt?: Date;
@@ -25,6 +27,7 @@ export class Model {
 
         this._id = props.id;
         this._name = props.name;
+        this._normalizedName = props.normalizedName;
         this._createdAt = props.createdAt;
         this._updatedAt = props.updatedAt;
         this._deletedAt = props.deletedAt;
@@ -36,6 +39,7 @@ export class Model {
         return new Model({
             id: props.id,
             name: Model.formatName(props.name),
+            normalizedName: Model.formatNormalizedName(props.name),
             createdAt: now,
             updatedAt: now,
             deletedAt: undefined,
@@ -54,13 +58,23 @@ export class Model {
         return this._name;
     }
 
+    // altera e valida o nome
+    // normalizedName tbm deve ser alterado
+    // aletração de nome deve refletir no normalizedNome
     rename(name: string): void {
         this.ensureNotDeleted();
-        const formattedName = Model.formatName(name);
-        if (this._name === formattedName) return;
+        const capitalizedName = Model.formatName(name);
+        const normalizedName = Model.formatNormalizedName(name);
+        if (normalizedName === this._normalizedName) return;
+        if (capitalizedName === this._name) return;
 
-        this._name = formattedName;
+        this._name = capitalizedName;
+        this._normalizedName = normalizedName;
         this.touch();
+    }
+
+    get normalizedName(): string {
+        return this._normalizedName;
     }
 
     get createdAt(): Date {
@@ -94,12 +108,23 @@ export class Model {
     }
 
     private static validateName(name: string) {
-        if (!name?.trim()) throw new ValidationError("Model cannot be empty");
+        if (!name?.trim()) throw new ValidationError("Model name cannot be empty");
     }
 
+    // altera a primeira letra do name
     private static formatName(name: string): string {
+        const normalized = capitalizeFirstLetter(name);
+        Model.validateName(normalized);
+
+        return normalized;
+    }
+
+    // formata todo o name para padronizar no db
+    private static formatNormalizedName(name: string): string {
         const normalized = normalizeName(name);
         Model.validateName(normalized);
+        console.log("formatNormalizedName ~~ normalized: ", normalized)
+
         return normalized;
     }
 
