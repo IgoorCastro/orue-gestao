@@ -1,8 +1,6 @@
 // map recebe todos os filtros para pesquisa de produtos
 // retorna um novo filtro com os ids das cores e materiais
 
-import { Color } from "@/src/domain/entities/color.entity";
-import { Material } from "@/src/domain/entities/material.entity";
 import { ProductSize } from "@/src/domain/enums/product-size.enum";
 import { ProductType } from "@/src/domain/enums/product-type.enum";
 import { ColorRepository } from "@/src/domain/repositories/color.repository";
@@ -18,9 +16,9 @@ type FindProductFilteredInputDto = {
     readonly models?: string[];
     readonly colors?: string[];
     readonly materials?: string[];
-    readonly orderBy?: string;
     readonly minPrice?: number;
     readonly maxPrice?: number;
+    readonly orderBy?: string;
     readonly page?: number;
     readonly limit?: number;
 }

@@ -17,35 +17,39 @@ export class PrismaStockRepository implements StockRepository {
     }
 
     async findByName(name: string): Promise<Stock[]> {
-        const stock = await this.prisma.stock.findMany({
-            where: { name: { contains: name, mode: "insensitive" } }
+        console.log("NAME: ", name)
+        const stocks = await this.prisma.stock.findMany({
+            where: {
+                name: { contains: name, mode: "insensitive" },
+                deletedAt: null,
+            }
         })
-
-        return stock.map(this.toDomain);
+        
+        return stocks.map(stock => this.toDomain(stock));
     }
 
     async findByStoreId(storeId: string): Promise<Stock[]> {
-        const stock = await this.prisma.stock.findMany({
+        const stocks = await this.prisma.stock.findMany({
             where: { storeId, deletedAt: null }
         });
 
-        return stock.map(this.toDomain);
+        return stocks.map(stock => this.toDomain(stock));
     }
 
     async findByType(type: StockType): Promise<Stock[]> {
-        const stock = await this.prisma.stock.findMany({
+        const stocks = await this.prisma.stock.findMany({
             where: { type: type as PrismaStockType, deletedAt: null }
         });
 
-        return stock.map(this.toDomain);
+        return stocks.map(stock => this.toDomain(stock));
     }
 
     async findAll(): Promise<Stock[]> {
-        const stock = await this.prisma.stock.findMany({
+        const stocks = await this.prisma.stock.findMany({
             where: { deletedAt: null }
         });
 
-        return stock.map(this.toDomain);
+        return stocks.map(stock => this.toDomain(stock));
     }
 
     async findMany(filters: { name?: string; storeId?: string; type?: StockType; }): Promise<Stock[]> {

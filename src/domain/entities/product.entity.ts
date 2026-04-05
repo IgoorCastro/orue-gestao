@@ -70,6 +70,7 @@ export class Product {
         this._deletedAt = props.deletedAt;
     }
 
+    // colors e materiais serão adicionados em um segundo momento!
     static create(props: {
         id: string,
         name: string,
@@ -331,7 +332,7 @@ export class Product {
     }
 
     get deletedAt(): Date | undefined {
-        return this._deletedAt ? new Date(this._deletedAt) : undefined;
+        return this._deletedAt;
     }
 
     delete(): void {

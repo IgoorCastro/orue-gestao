@@ -22,12 +22,12 @@ export type FindProductFilteredDto = Readonly<{
     type?: ProductType,
     barcode?: string,
     mlProductId?: string,
-    page?: number;
-    limit?: number;
     price?: {
         gte?: number,
         lte?: number,
     },
+    page?: number;
+    limit?: number;
     orderBy?: {
         field: "name" | "price" | "createdAt";
         direction: "asc" | "desc";

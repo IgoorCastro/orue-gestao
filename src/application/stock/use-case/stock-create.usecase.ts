@@ -38,8 +38,12 @@ export class CreateStockUseCase {
         }
 
         const formattedName = normalizeName(input.name);
-        const exists = await this.stockRepository.findByName(formattedName); // procura por estoque com o msm nome
-        if (exists.length) throw new ConflictError("Stock name already exists");
+        
+        const stocks = await this.stockRepository.findByName(formattedName); // procura por estoque com o msm nome
+        if (stocks.length) {
+            const exists = stocks.map(stock => stock.storeId === input.storeId)
+            if (exists.includes(true)) throw new ConflictError("Stock name already exists");
+        }
 
         const stock = Stock.create({
             id: this.uuid.generate(),

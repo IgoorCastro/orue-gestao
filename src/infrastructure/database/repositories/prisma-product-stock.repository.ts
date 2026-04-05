@@ -11,8 +11,8 @@ export class PrismaProductStockRepository implements ProductStockRepository {
         const productStock = await this.prisma.productStock.findFirst({
             where: { id, deletedAt: null },
         })
-        
-        if(!productStock) return null;
+
+        if (!productStock) return null;
 
         return this.toDomain(productStock);
     }
@@ -31,28 +31,30 @@ export class PrismaProductStockRepository implements ProductStockRepository {
     async findByStockId(stockId: string): Promise<ProductStock[]> {
         const productStocks = await this.prisma.productStock.findMany({
             where: {
-                stockId, 
+                stockId,
                 deletedAt: null
             }
         })
 
-        return productStocks.map(this.toDomain);  
+        return productStocks.map(this.toDomain);
     }
 
     async findByProductAndStockId(productId: string, stockId: string): Promise<ProductStock | null> {
+        console.log("PI: ", productId)
+        console.log("SI: ", stockId)
         if (!productId || !stockId) return null;
 
-        const productStock = await this.prisma.productStock.findUnique({
+        const productStock = await this.prisma.productStock.findFirst({
             where: {
-                productId_stockId: { // nome gerado automaticamente pelo Prisma para a @@unique
-                    productId,
-                    stockId
-                },
+                productId,
+                stockId,
                 deletedAt: null,
             }
         });
 
-        if(!productStock) return null;
+        console.log("productStock: ", productStock)
+
+        if (!productStock) return null;
 
         return this.toDomain(productStock);
     }

@@ -1,9 +1,9 @@
 import { PrismaClient, Prisma, ProductType as PrismaProductType } from "@/generated/prisma/client";
-import { FindProductFilteredDto } from "@/src/application/product/dto/product-find.dto";
 import { Product } from "@/src/domain/entities/product.entity";
 import { ProductSize } from "@/src/domain/enums/product-size.enum";
 import { ProductType } from "@/src/domain/enums/product-type.enum";
 import { ProductRepository } from "@/src/domain/repositories/product.repository";
+import { ProductFilters } from "@/src/domain/types/product-filters.type";
 
 type PrismaProductWithRelations = Prisma.ProductGetPayload<{
     include: {
@@ -49,8 +49,6 @@ export class PrismaProductRepository implements ProductRepository {
             include: this.defaultInclude
         });
 
-        console.log("products: ", products);
-
         return products.map(p => this.toDomain(p));
     }
 
@@ -85,7 +83,7 @@ export class PrismaProductRepository implements ProductRepository {
     // FILTERS
     // =========================
 
-    async findWithFilters(filters: FindProductFilteredDto) {
+    async findWithFilters(filters: ProductFilters) {
         const where: Prisma.ProductWhereInput = {
             name: filters.name
                 ? { contains: filters.name, mode: "insensitive" }
@@ -320,7 +318,7 @@ export class PrismaProductRepository implements ProductRepository {
     }
 
     // =========================
-    // 📦 DEFAULT INCLUDE
+    // DEFAULT INCLUDE
     // =========================
 
     private readonly defaultInclude = {

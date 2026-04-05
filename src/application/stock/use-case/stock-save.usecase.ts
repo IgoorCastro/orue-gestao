@@ -37,6 +37,7 @@ export class UpdateStockUseCase {
 
             stock.rename(input.name);
         };
+        
         // Validação para update de tipo de estoque
          // estoque 'STORE' para 'MAIN'
         if(input.type === StockType.MAIN) stock.setAsMainStock(); 

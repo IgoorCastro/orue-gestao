@@ -1,10 +1,19 @@
 import { ProductSize } from "../enums/product-size.enum";
+import { ProductType } from "../enums/product-type.enum";
 
 export type ProductFilters = Readonly<{
+    name?: string,
     colorIds?: string[];
     materialIds?: string[];
-    modelId?: string;
+    modelIds?: string[];
     size?: ProductSize;
+    type?: ProductType,
+    barcode?: string,
+    mlProductId?: string,
+    price?: {
+        gte?: number,
+        lte?: number,
+    },
     page?: number;
     limit?: number;
     orderBy?: {

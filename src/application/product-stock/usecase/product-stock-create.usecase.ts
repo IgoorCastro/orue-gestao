@@ -31,7 +31,7 @@ export class CreateProductStockUseCase {
         if(!product) throw new NotFoundError("Product not found");
         
         // valida se ja há um registro igual no Db
-        const exists = await this.productStockRepository.findByProductAndStockId(input.stockId, input.productId);
+        const exists = await this.productStockRepository.findByProductAndStockId(input.productId, input.stockId);
         if(exists) throw new ConflictError("Product is already registered in this stock");
 
         const productStock = ProductStock.create({
