@@ -1,4 +1,6 @@
 import { PrismaClient, ProductStock as PrismaProductStock, Prisma } from "@/generated/prisma/client";
+import { Color } from "@/src/domain/entities/color.entity";
+import { ProductColor } from "@/src/domain/entities/product-color";
 import { ProductStock } from "@/src/domain/entities/product-stock.entity";
 import { Product } from "@/src/domain/entities/product.entity";
 import { Stock } from "@/src/domain/entities/stock.entity";
@@ -7,6 +9,7 @@ import { ProductSize } from "@/src/domain/enums/product-size.enum";
 import { ProductType } from "@/src/domain/enums/product-type.enum";
 import { StockType } from "@/src/domain/enums/stock-type.enum";
 import { ProductStockRepository } from "@/src/domain/repositories/product-stock.repository";
+import { ProductStockFilters } from "@/src/domain/types/product-stock-filters.type";
 
 type ProductWithRelations = Prisma.ProductGetPayload<{
     include: {
@@ -111,39 +114,77 @@ export class PrismaProductStockRepository implements ProductStockRepository {
 
     // find com filtro
     // retorna uma lista de produtos em estoque e pode ser filtrada
-    async findMany(filters: { productId?: string; stockId?: string; }): Promise<ProductStock[]> {
-        const ps = await this.prisma.productStock.findMany({
-            where: {
-                productId: filters.productId,
-                stockId: filters.stockId,
-            },
-            include: {
-                product: {
-                    include: {
-                        ProductColor: {
-                            include: { Color: true }
-                        },
-                        ProductMaterial: {
-                            include: { Material: true }
+    async findMany(filters: ProductStockFilters) {
+        const where: Prisma.ProductStockWhereInput = {
+            productId: filters.productId,
+            stockId: filters.stockId,
+            product: {
+                name: {
+                    contains: filters.productName,
+                    mode: 'insensitive',
+                }
+            }
+        }
+
+        // Configuração de paginação
+        const limit = filters.limit ?? 10; // default limit: 10 item por request
+        const page = filters.page && filters.page > 0 ? filters.page : 1; // default page: page 1
+        const orderBy = filters.orderBy
+            ? { [filters.orderBy.field]: filters.orderBy.direction }
+            : undefined;
+
+        const [data, total] = await Promise.all([
+            this.prisma.productStock.findMany({
+                where,
+                include: {
+                    product: {
+                        include: {
+                            ProductColor: {
+                                include: { Color: true }
+                            },
+                            ProductMaterial: {
+                                include: { Material: true }
+                            }
+                        }
+                    },
+                    stock: {
+                        include: {
+                            Store: true,
                         }
                     }
                 },
-                stock: {
-                    include: {
-                        Store: true,
-                    }
-                }
-            }
-        });
+                take: limit,
+                skip: (page - 1) * limit,
+                orderBy: orderBy ?? { createdAt: "desc" },
+            }),
+            this.prisma.productStock.count({ where })
+        ]);
 
-        return ps.map((productStock, index) => {
-            try {
-                return this.toDomainWithInclude(productStock);
-            } catch (e) {
-                console.error(`Erro no mapeamento do ProductStock índice [${index}]:`, e);
-                throw e;
-            }
-        });
+        return {
+            data: data.map(ps => this.toDomainWithInclude(ps)),
+            total,
+        }
+    }
+
+
+
+    async sumStockValue(filters?: { stockId?: string; productId?: string }): Promise<number> {
+        const { stockId, productId } = filters || {};
+
+        console.log("PRISMA >> FILTERS: ", filters)
+
+        const result = await this.prisma.$queryRaw<{ total: number }[]>(
+            Prisma.sql`
+                SELECT COALESCE(SUM(ps.quantity * p.price), 0) as total
+                FROM "ProductStock" ps
+                JOIN "Product" p ON p.id = ps."productId"
+                WHERE ps."deletedAt" IS NULL
+                ${stockId ? Prisma.sql`AND ps."stockId" = ${stockId}` : Prisma.empty}
+                ${productId ? Prisma.sql`AND ps."productId" = ${productId}` : Prisma.empty}
+            `
+        );
+
+        return Number(result[0]?.total ?? 0);
     }
 
     async exists(productId: string, stockId: string, ignoreId?: string): Promise<boolean> {
@@ -228,7 +269,7 @@ export class PrismaProductStockRepository implements ProductStockRepository {
             sku: prismaProduct.sku,
             normalizedName: prismaProduct.normalizedName,
             price: prismaProduct.price,
-            modelId: prismaProduct.modelId,
+            modelId: prismaProduct.modelId ?? undefined,
 
             type: this.mapProductType(prismaProduct.type),
             size: this.mapProductSize(prismaProduct.size),
@@ -242,6 +283,24 @@ export class PrismaProductStockRepository implements ProductStockRepository {
 
             colors: prismaProduct.ProductColor.map(pc => pc.Color.name),
             materials: prismaProduct.ProductMaterial.map(pm => pm.Material.name),
+
+            productColor: prismaProduct.ProductColor
+                ? prismaProduct.ProductColor.map((pc) => 
+                    new ProductColor({
+                        id: pc.id,
+                        colorId: pc.colorId,
+                        productId: pc.productId,
+                        color: Color.restore({
+                            id: pc.Color.id,
+                            name: pc.Color.name,
+                            normalizedName: pc.Color.normalizedName,
+                            createdAt: pc.Color.createdAt,
+                            updatedAt: pc.Color.updatedAt,
+                            deletedAt: pc.Color.deletedAt ?? undefined,
+                        }),
+                    })
+                )
+                : undefined,
         });
     }
 

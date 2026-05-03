@@ -27,12 +27,17 @@ export type FindProductFilteredDto = Readonly<{
     colorIds?: string[];
     materialIds?: string[];
     modelIds?: string[];
+    
     page?: number;
     limit?: number;
+
     orderBy?: {
         field: "name" | "price" | "createdAt";
         direction: "asc" | "desc";
     };
+
+    onlyDeleted?: boolean,
+    withDeleted?: boolean,
 }>
 
 export type FindProductOutputDto = Readonly<{

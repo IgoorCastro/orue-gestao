@@ -19,6 +19,7 @@ export class UpdateProductUseCase {
     ) { }
 
     async execute(input: SaveProductInputDto): Promise<SaveProductOutputDto> {
+        console.log("INPUT: ", input)
         const { id, name, type, price, size, modelId, materialIds, colorIds, mlProductId } = input;
         let shouldRecalculateSku = false; // controle para gerar novo sku
 
@@ -29,7 +30,7 @@ export class UpdateProductUseCase {
 
 
         if (name !== undefined) {
-            const formattedName = normalizeName(name);
+            // const formattedName = normalizeName(name);
             // const exists = await this.productRepository.findByName(formattedName);
             // console.log("exists", exists)
             // if(exists.length > 0) throw new ConflictError("Product name already exists");
@@ -71,7 +72,6 @@ export class UpdateProductUseCase {
             product.changeModel(modelId);
             shouldRecalculateSku = true;
         }
-        console.log("PASSOUs >> ")
 
         // alterar sku sempre que houver alteração
         // em suas propriedades

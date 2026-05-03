@@ -13,6 +13,7 @@ import { PrismaStockRepository } from "@/src/infrastructure/database/repositorie
 import { UUIDGenerator } from "@/src/infrastructure/services/uuid-generator";
 import { PrismaProductRepository } from "@/src/infrastructure/database/repositories/prisma-product.repository";
 import { FindProductStocksUseCase } from "@/src/application/product-stock/usecase/product-stock-find.usecase";
+import { ProductStockFilterMapper } from "@/src/application/mappers/product-stock-filter.mapper";
 
 // Rota POST
 // body esperado: productId, stockId e quantity
@@ -60,13 +61,33 @@ export async function GET(req: NextResponse) {
 
         const productId = searchParams.get("productId") ?? undefined;
         const stockId = searchParams.get("stockId") ?? undefined;
+        const productName = searchParams.get("productName") ?? undefined; // pesquisa por nome do produto
+        
+        // paginação e ordem do items
+        const limit = searchParams.get("limit") ?? undefined; // limit padrão: 10
+        const page = searchParams.get("page") ?? undefined; // page padrão: 1
+        const orderBy = searchParams.get("orderBy") ?? undefined;
+        
+        // filtragem com ou sem items deletados
+        const onlyDeleted = searchParams.get("onlyDeleted") ?? undefined;
+        const withDeleted = searchParams.get("withDeleted") ?? undefined;
 
         const findManyUseCase = new FindProductStocksUseCase(new PrismaProductStockRepository(prisma));
 
-        const ps = await findManyUseCase.execute({ 
+        const filterMapper = new ProductStockFilterMapper();
+        const filter = filterMapper.map({
+            productName,
+            stockId,
             productId,
-            stockId: stockId,
+            limit,
+            page,
+            orderBy,
+            onlyDeleted,
+            withDeleted,
         })
+
+        const ps = await findManyUseCase.execute(filter);
+        
         return NextResponse.json(ps, { status: 200 });
     } catch (error: unknown) {
         if (error instanceof DomainError) {

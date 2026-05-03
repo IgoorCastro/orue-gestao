@@ -146,6 +146,10 @@ export class Product {
     // aletração de nome deve refletir no normalizedNome
     rename(name: string): void {
         this.ensureNotDeleted();
+        console.log("\n\nRenomeando produto..");
+        console.log("> Novo nome: ", name);
+        console.log("- Nome antigo: ", this._name)
+        console.log("- Normalized name antigo: ", this._normalizedName)
         const normalizedName = Product.formatNormalizedName(name);
         const capitalizedName = Product.formatName(name);
         if (normalizedName === this._normalizedName) return;
@@ -153,6 +157,9 @@ export class Product {
 
         this._name = capitalizedName;
         this._normalizedName = normalizedName;
+        
+        console.log("-- Name novo: ", this._name)
+        console.log("-- Normalized name novo: ", this._normalizedName)
         this.touch();
     }
 

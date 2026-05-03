@@ -88,7 +88,8 @@ export class PrismaProductRepository implements ProductRepository {
     // =========================
 
     async findWithFilters(filters: ProductFilters) {
-        console.log("\n\nINFRA >> PRISMA >> \nFILTERS: ", filters)
+        console.log("\n\nProduct >> INFRA >> PRISMA >> findWithFilters >> \nFILTERS: ", filters);
+        // preparação do where
         const where: Prisma.ProductWhereInput = {
             name: filters.name
                 ? { contains: filters.name, mode: "insensitive" }
@@ -113,6 +114,15 @@ export class PrismaProductRepository implements ProductRepository {
 
             mlProductId: filters.mlProductId,
 
+            // Filtragem com 3 opções:
+            // onlyDeleted retorna apenas items deletados
+            // withDeleted pode retornor com items deletados ou não
+            deletedAt: filters.onlyDeleted
+                ? { not: null } // retorna apenas os produtos deletados
+                : filters.withDeleted
+                    ? undefined // retorna produtos desativados/ não desativados
+                    : null, // retorna apenas os produtos não desativados
+
             AND: [
                 ...(filters.colorIds?.map((colorId) => ({
                     ProductColor: {
@@ -127,8 +137,9 @@ export class PrismaProductRepository implements ProductRepository {
             ],
         };
 
-        const limit = filters.limit ?? 10;
-        const page = filters.page && filters.page > 0 ? filters.page : 1;
+        // Configuração de paginação
+        const limit = filters.limit ?? 10; // default limit: 10 item por request
+        const page = filters.page && filters.page > 0 ? filters.page : 1; // default page: page 1
         const orderBy = filters.orderBy
             ? { [filters.orderBy.field]: filters.orderBy.direction }
             : undefined;
@@ -195,70 +206,69 @@ export class PrismaProductRepository implements ProductRepository {
 
     // Atualiza produto + relações (cores e materiais)
     async save(product: Product): Promise<void> {
-    try {
-        console.log("\n\nINFRA >> PRISMA >> INICIANDO SALVAMENTO: ", product.id);
+        try {
+            await this.prisma.$transaction(async (prisma) => {
+                // 1. Atualiza o produto principal
+                await prisma.product.update({
+                    where: { id: product.id },
+                    data: {
+                        name: product.name,
+                        normalizedName: product.normalizedName,
+                        type: product.type as PrismaProductType,
+                        price: product.price,
+                        size: product.size,
+                        sku: product.sku,
+                        barcode: product.barcode,
+                        // Se modelId for null/undefined, o connect pode quebrar. 
+                        // Usando ternário para segurança:
+                        model: product.modelId ? { connect: { id: product.modelId } } : undefined,
+                        deletedAt: product.deletedAt ?? null,
+                        updatedAt: product.updatedAt,
+                    },
+                });
 
-        await this.prisma.$transaction(async (prisma) => {
-            // 1. Atualiza o produto principal
-            await prisma.product.update({
-                where: { id: product.id },
-                data: {
-                    name: product.name,
-                    type: product.type as PrismaProductType,
-                    price: product.price,
-                    size: product.size,
-                    sku: product.sku,
-                    barcode: product.barcode,
-                    // Se modelId for null/undefined, o connect pode quebrar. 
-                    // Usando ternário para segurança:
-                    model: product.modelId ? { connect: { id: product.modelId } } : undefined,
-                    deletedAt: product.deletedAt ?? null,
-                    updatedAt: product.updatedAt,
-                },
+                // 2. Atualiza cores (Delete + Create)
+                await prisma.productColor.deleteMany({ where: { productId: product.id } });
+
+                if (product.colors && product.colors.length > 0) {
+                    await prisma.productColor.createMany({
+                        data: product.colors.map(colorId => ({
+                            id: crypto.randomUUID(),
+                            productId: product.id,
+                            colorId,
+                        })),
+                    });
+                }
+
+                // 3. Atualiza materiais (Delete + Create)
+                await prisma.productMaterial.deleteMany({ where: { productId: product.id } });
+
+                if (product.materials && product.materials.length > 0) {
+                    await prisma.productMaterial.createMany({
+                        data: product.materials.map(materialId => ({
+                            id: crypto.randomUUID(),
+                            productId: product.id,
+                            materialId,
+                        })),
+                    });
+                }
             });
 
-            // 2. Atualiza cores (Delete + Create)
-            await prisma.productColor.deleteMany({ where: { productId: product.id } });
-            
-            if (product.colors && product.colors.length > 0) {
-                await prisma.productColor.createMany({
-                    data: product.colors.map(colorId => ({
-                        id: crypto.randomUUID(),
-                        productId: product.id,
-                        colorId,
-                    })),
-                });
-            }
+            console.log("INFRA >> PRISMA >> SUCESSO");
 
-            // 3. Atualiza materiais (Delete + Create)
-            await prisma.productMaterial.deleteMany({ where: { productId: product.id } });
-            
-            if (product.materials && product.materials.length > 0) {
-                await prisma.productMaterial.createMany({
-                    data: product.materials.map(materialId => ({
-                        id: crypto.randomUUID(),
-                        productId: product.id,
-                        materialId,
-                    })),
-                });
-            }
-        });
+        } catch (error: any) {
+            // Log detalhado para matar o erro 500
+            console.error("\n\n--- [ERRO PRISMA SAVE] ---");
+            console.error("Mensagem:", error.message);
+            console.error("Código Prisma:", error.code); // Ex: P2002, P2025
+            console.error("Meta:", error.meta);
+            console.error("Stack:", error.stack);
+            console.error("---------------------------\n");
 
-        console.log("INFRA >> PRISMA >> SUCESSO");
-
-    } catch (error: any) {
-        // Log detalhado para matar o erro 500
-        console.error("\n\n--- [ERRO PRISMA SAVE] ---");
-        console.error("Mensagem:", error.message);
-        console.error("Código Prisma:", error.code); // Ex: P2002, P2025
-        console.error("Meta:", error.meta);
-        console.error("Stack:", error.stack);
-        console.error("---------------------------\n");
-
-        // Lança o erro para a camada superior (Service/Controller) tratar
-        throw new Error(`Falha ao salvar produto: ${error.message}`);
+            // Lança o erro para a camada superior (Service/Controller) tratar
+            throw new Error(`Falha ao salvar produto: ${error.message}`);
+        }
     }
-}
 
     async create(product: Product): Promise<void> {
         try {

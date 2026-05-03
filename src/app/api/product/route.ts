@@ -92,14 +92,19 @@ export async function GET(req: NextRequest) {
         // para criar um rage de preços para pesquisa
         const minPrice = searchParams.get("minPrice") ?? undefined;
         const maxPrice = searchParams.get("maxPrice") ?? undefined;
+        // parametros de paginação
         const limitParam = searchParams.get("limit");
         const pageParam = searchParams.get("page");
+        // ordenação (usar com quantidade)
         const orderBy = searchParams.get("orderBy") ?? undefined;
         // multiplos parametros
         // filtra com uma ou mais strings
         const models = searchParams.getAll("models");
         const colors = searchParams.getAll("colors[]");
         const materials = searchParams.getAll("materials");
+        // filtragem com ou sem items deletados
+        const onlyDeleted = searchParams.get("onlyDeleted") ?? undefined;
+        const withDeleted = searchParams.get("withDeleted") ?? undefined;
 
         function makeFilterMap() {
             const colorRep = new PrismaColorRepository(prisma);
@@ -128,16 +133,13 @@ export async function GET(req: NextRequest) {
             page: Number(page),
             limit: Number(limit),
             type: type as ProductType,
+            onlyDeleted,
+            withDeleted,
         })
-
-        
-        // console.log("FILTERSSS: ", filter)
         
         const findWithFilter = new FindProductsUseCase(new PrismaProductRepository(prisma));
 
         const product = await findWithFilter.execute(filter);
-
-        console.log("product: ", product)
 
         return NextResponse.json(product, { status: 200 });
     } catch (error: unknown) {

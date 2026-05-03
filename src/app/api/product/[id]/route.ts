@@ -15,11 +15,11 @@ import { DeleteProductByIdUseCase } from "@/src/application/product/use-case/pro
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const productRepository = new PrismaProductRepository(prisma);
-        const findManyUseCase = new FindProductByIdUseCase(productRepository);
+        const findByIdUseCase = new FindProductByIdUseCase(productRepository);
 
         const { id } = await params;
 
-        const product = await findManyUseCase.execute({ id });
+        const product = await findByIdUseCase.execute({ id });
 
         return NextResponse.json(product, { status: 200 });
     } catch (error: unknown) {
@@ -50,8 +50,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
                 { message: "Nenhum dado para atualizar" },
                 { status: 400 }
             );
-
-        console.log("BODY: ", body)
 
         function makeUpdateProductUseCase() {
             const productRepository = new PrismaProductRepository(prisma);

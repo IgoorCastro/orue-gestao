@@ -130,9 +130,6 @@ export class CreateProductUseCase {
             barcode: product.barcode,
             mlProductId: product.mlProductId,
         }
-
-
-
     }
 
     // valida os ids recebidos com os ids encontrados no db

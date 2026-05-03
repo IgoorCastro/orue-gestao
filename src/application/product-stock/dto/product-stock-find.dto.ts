@@ -6,6 +6,7 @@ type Product = Readonly<{
     barcode?: string,
     type: string,
     size: string,
+    colorsName?: string[],
 }>
 
 type Store = Readonly<{
@@ -38,8 +39,20 @@ export type FindProductStockByProductAndStockIdInputDto = Readonly<{
 }>;
 
 export type FindProductStockFilteredDto = Readonly<{
-    stockId?: string,
-    productId?: string,
+    productId?: string;
+    stockId?: string;
+    productName?: string;
+    
+    withDeleted?: boolean,
+    onlyDeleted?: boolean,
+    
+    page?: number;
+    limit?: number;
+    
+    orderBy?: {
+        field: "quantity";
+        direction: "asc" | "desc";
+    };
 }>
 
 
@@ -56,3 +69,10 @@ export type FindProductStockOutputDto = Readonly<{
     product?: Product,
     stock?: Stock,
 }>;
+
+export type FindProductStockListOutputDto = Readonly<{
+    data: FindProductStockOutputDto[];
+    total: number;
+    page: number;
+    limit: number;
+}>

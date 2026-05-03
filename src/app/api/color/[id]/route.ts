@@ -1,4 +1,3 @@
-import { FindColorsUseCase } from "@/src/application/color/usecase/color-find.usecase";
 import { DomainError } from "@/src/domain/errors/domain.error";
 import { prisma } from "@/src/infrastructure/database/prisma/client";
 import { PrismaColorRepository } from "@/src/infrastructure/database/repositories/prisma-color.repository";
@@ -6,18 +5,17 @@ import { NextRequest, NextResponse } from "next/server";
 import mapDomainErrorToStatus from "../../mapDomainErrorToStatus.error";
 import { UpdateColorUseCase } from "@/src/application/color/usecase/color-save.usecase";
 import { DeleteColorByIdUseCase } from "@/src/application/color/usecase/color-delete.usecase";
+import { FindColorByIdUseCase } from "@/src/application/color/usecase/color-find-byId.usecase";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const colorRepository = new PrismaColorRepository(prisma);
-        const findManyUseCase = new FindColorsUseCase(colorRepository);
+        const findManyUseCase = new FindColorByIdUseCase(colorRepository);
 
         const { id } = await params;
 
         // usecase findmany
-        const colors = await findManyUseCase.execute({
-            id,
-        });
+        const colors = await findManyUseCase.execute({ id });
 
         return NextResponse.json(colors, { status: 200 });
     } catch (error: unknown) {

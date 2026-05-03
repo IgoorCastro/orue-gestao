@@ -20,7 +20,7 @@ export class PrismaStoreRepository implements StoreRepository {
         const store = await this.prisma.store.findMany({
             where: { 
                 name: {
-                    contains: name,
+                    equals: name,
                     mode: "insensitive",
                 }
              }

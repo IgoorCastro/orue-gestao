@@ -33,7 +33,7 @@ export class UpdateStockUseCase {
         if(input.name !== undefined) {
             const formattedName = normalizeName(input.name); // forma padrão que vai para o db
             const exists = await this.stockRepository.findByName(formattedName);
-            if(exists) throw new ConflictError("Stock name already exists");
+            if(exists.length) throw new ConflictError("Stock name already exists");
 
             stock.rename(input.name);
         };

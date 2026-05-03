@@ -26,7 +26,7 @@ export class PrismaStockRepository implements StockRepository {
     async findByName(name: string): Promise<Stock[]> {
         const stocks = await this.prisma.stock.findMany({
             where: {
-                name: { contains: name, mode: "insensitive" },
+                name: { equals: name, mode: "insensitive" },
                 deletedAt: null,
             }
         })
