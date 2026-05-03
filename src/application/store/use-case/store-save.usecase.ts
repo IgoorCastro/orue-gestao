@@ -13,6 +13,7 @@ export class UpdateStoreUseCase {
     ) { }
 
     async execute(input: SaveStoreInputDto): Promise<SaveStoreOutputDto> {
+        console.log("INPUT: ", input)
         if(!input.id?.trim()) throw new ValidationError("Id cannot be empty");
 
         // validação de existencia da loja

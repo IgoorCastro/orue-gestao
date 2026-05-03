@@ -27,12 +27,17 @@ export type FindProductFilteredDto = Readonly<{
     colorIds?: string[];
     materialIds?: string[];
     modelIds?: string[];
+    
     page?: number;
     limit?: number;
+
     orderBy?: {
         field: "name" | "price" | "createdAt";
         direction: "asc" | "desc";
     };
+
+    onlyDeleted?: boolean,
+    withDeleted?: boolean,
 }>
 
 export type FindProductOutputDto = Readonly<{
@@ -44,10 +49,10 @@ export type FindProductOutputDto = Readonly<{
     type: ProductType,
     barcode?: string,
 
-    modelId: string,
-    materialIds: string[],
+    modelId?: string,
+    materialIds?: string[],
     mlProductId?: string,
-    colorIds: string[],
+    colorIds?: string[],
 
     productColor?: ProductColor[],
     productMaterial?: ProductMaterial[],

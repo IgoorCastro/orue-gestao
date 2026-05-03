@@ -49,8 +49,7 @@ export type FindStockMovimentFilteredOutputDto = Readonly<{
 }>
 
 export class StockMovimentFilterMapper {
-
-    async map(input: FindStockMovimentFilteredInputDto): Promise<FindStockMovimentFilteredOutputDto> {
+    map(input: FindStockMovimentFilteredInputDto): FindStockMovimentFilteredOutputDto {
         const price =
             input.priceGte !== undefined || input.priceLte !== undefined
                 ? {

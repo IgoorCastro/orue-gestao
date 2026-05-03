@@ -1,24 +1,22 @@
-import { FindUsersUseCase } from "@/backend/src/application/user/use-case/user-find.usecase";
-import { PrismaUserRepository } from "@/backend/src/infrastructure/database/repositories/prisma-user.repository";
+import { PrismaUserRepository } from "@/src/infrastructure/database/repositories/prisma-user.repository";
 import { NextRequest, NextResponse } from "next/server";
 import mapDomainErrorToStatus from "../../mapDomainErrorToStatus.error";
-import { DomainError } from "@/backend/src/domain/errors/domain.error";
-import { prisma } from "@/backend/src/infrastructure/database/prisma/client";
-import { DeleteUserByIdUseCase } from "@/backend/src/application/user/use-case/user-delete.usecase";
-import { BcryptService } from "@/backend/src/infrastructure/services/bcrypt.service";
-import { UpdateUserUseCaseUseCase } from "@/backend/src/application/user/use-case/user-save.usecase";
+import { DomainError } from "@/src/domain/errors/domain.error";
+import { prisma } from "@/src/infrastructure/database/prisma/client";
+import { DeleteUserByIdUseCase } from "@/src/application/user/use-case/user-delete.usecase";
+import { BcryptService } from "@/src/infrastructure/services/bcrypt.service";
+import { UpdateUserUseCaseUseCase } from "@/src/application/user/use-case/user-save.usecase";
+import { FindUserByIdUseCase } from "@/src/application/user/use-case/user-find-byId.usecase";
 
 // get por id via params
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const userRepository = new PrismaUserRepository(prisma);
-        const findManyUseCase = new FindUsersUseCase(userRepository);
+        const findManyUseCase = new FindUserByIdUseCase(userRepository);
 
         const { id } = await params;
         // useCase findMany executando
-        const users = await findManyUseCase.execute({
-            id: id,
-        });
+        const users = await findManyUseCase.execute({ id });
 
         return NextResponse.json(users, { status: 200 });
 

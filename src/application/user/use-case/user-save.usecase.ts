@@ -33,7 +33,7 @@ export class UpdateUserUseCaseUseCase {
         if(input.nickname !== undefined) {
             const formattedNickname = normalizeName(input.nickname);
             const exists = await this.userRepository.existsByNickname(formattedNickname);
-            if(exists) throw new ConflictError("User nickname already exists");
+            if(exists && input.id !== user.id) throw new ConflictError("User nickname already exists");
 
             user.changeNickname(input.nickname);
         }

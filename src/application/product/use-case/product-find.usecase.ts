@@ -6,7 +6,7 @@ export class FindProductsUseCase {
     constructor(private productRepository: ProductRepository) { }
 
     async execute(filters: FindProductFilteredDto): Promise<FindProductListOutputDto> {
-        console.log("\n\nAPP >> USECASE >>\nFILTERS: ", filters)
+        // console.log("\n\nAPP >> USECASE >>\nFILTERS: ", filters)
         const page = filters.page && filters.page > 0 ? filters.page : 1;
         const limit = filters.limit && filters.limit > 0 ? filters.limit : 10;
 

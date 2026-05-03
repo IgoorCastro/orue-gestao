@@ -12,6 +12,8 @@ export type ProductFilters = Readonly<{
     mlProductId?: string,
     maxPrice?: number,
     minPrice?: number,
+    withDeleted?: boolean,
+    onlyDeleted?: boolean,
     
     page?: number;
     limit?: number;

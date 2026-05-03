@@ -20,7 +20,7 @@ type ProductProps = Readonly<{
     barcode?: string,
     type: ProductType,
 
-    modelId: string,
+    modelId?: string,
     mlProductId?: string,
 
     productColor?: ProductColor[],
@@ -38,7 +38,7 @@ export class Product {
     private _type: ProductType;
     private _price: number;
     private _size?: ProductSize;
-    private _modelId: string;
+    private _modelId?: string;
     private _materialIds: string[];
     private _colorIds: string[];
     private _mlProductId?: string; // vínculo futuro com ML
@@ -52,7 +52,7 @@ export class Product {
 
     private constructor(props: ProductProps) {
         if (!props.id?.trim()) throw new ValidationError("Id cannot be empty");
-        this.validateModel(props.modelId);
+        if(props.modelId) this.validateModel(props.modelId);
         // Product.validateName(props.name);
         this.validatePrice(props.price);
         this.validateSku(props.sku);
@@ -87,10 +87,11 @@ export class Product {
         type: ProductType,
         sku: string,
         size?: ProductSize,
-        modelId: string,
+        modelId?: string,
         mlProductId?: string,
         barcode?: string,
     }): Product {
+        console.log("PROPS: ", props)
         const now = new Date();
 
         return new Product({
@@ -145,6 +146,10 @@ export class Product {
     // aletração de nome deve refletir no normalizedNome
     rename(name: string): void {
         this.ensureNotDeleted();
+        console.log("\n\nRenomeando produto..");
+        console.log("> Novo nome: ", name);
+        console.log("- Nome antigo: ", this._name)
+        console.log("- Normalized name antigo: ", this._normalizedName)
         const normalizedName = Product.formatNormalizedName(name);
         const capitalizedName = Product.formatName(name);
         if (normalizedName === this._normalizedName) return;
@@ -152,6 +157,9 @@ export class Product {
 
         this._name = capitalizedName;
         this._normalizedName = normalizedName;
+        
+        console.log("-- Name novo: ", this._name)
+        console.log("-- Normalized name novo: ", this._normalizedName)
         this.touch();
     }
 
@@ -200,7 +208,7 @@ export class Product {
         this.touch();
     }
 
-    get modelId(): string {
+    get modelId(): string | undefined {
         return this._modelId;
     }
 

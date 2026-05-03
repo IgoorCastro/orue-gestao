@@ -7,43 +7,54 @@ import { ColorRepository } from "@/src/domain/repositories/color.repository";
 import { MaterialRepository } from "@/src/domain/repositories/material.repository";
 import { ModelRepository } from "@/src/domain/repositories/model.repository";
 
-type FindProductFilteredInputDto = {
-    readonly name?: string;
-    readonly barcode?: string;
-    readonly mlProductId?: string;
-    readonly type?: ProductType;
-    readonly size?: string;
-    readonly models?: string[];
-    readonly colors?: string[];
-    readonly materials?: string[];
-    readonly minPrice?: string;
-    readonly maxPrice?: string;
-    readonly orderBy?: string;
-    readonly page?: number;
-    readonly limit?: number;
-}
+type FindProductFilteredInputDto = Readonly<{
+    name?: string;
+    size?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    barcode?: string;
+    type?: ProductType;
+
+    mlProductId?: string;
+    models?: string[];
+    colors?: string[];
+    materials?: string[];
+
+    onlyDeleted?: string,
+    withDeleted?: string,
+
+    orderBy?: string;
+    page?: number;
+    limit?: number;
+}>
 
 export type FindProductFilteredOutputDto = Readonly<{
     name?: string,
     barcode?: string,
     type?: ProductType,
-    mlProductId?: string,
-    colorIds?: string[];
-    materialIds?: string[];
-    modelIds?: string[];
     size?: ProductSize;
-    page?: number;
-    limit?: number;
+
     price?: {
         gte?: number,
         lte?: number,
     },
     maxPrice?: number,
     minPrice?: number,
+
+    mlProductId?: string,
+    colorIds?: string[];
+    materialIds?: string[];
+    modelIds?: string[];
+
+    page?: number;
+    limit?: number;
     orderBy?: {
         field: "name" | "price" | "createdAt";
         direction: "asc" | "desc";
     };
+
+    onlyDeleted?: boolean,
+    withDeleted?: boolean,
 }>
 
 export class ProductFilterMapper {
@@ -78,6 +89,19 @@ export class ProductFilterMapper {
         const type = allowedTypes.includes(input.type as ProductType)
             ? input.type as ProductType
             : undefined;
+            
+        // - CONTROLE PARA ITEMS DELETADOS -
+        // onlyDeleted possui dois estados:
+        // true: traz apénas items deletados                <--
+        // false: 'executa o withDeleted'                   <--
+        // pode trazer todos ou apenas
+        // items que não foram deletados
+        const onlyDeleted = !!input.onlyDeleted; //         <--            
+        // withDeleted pode ter dois estados:
+        // true: traz todos items 'incluindo deletados'     <--
+        // false: traz apénas items não deletados           <--
+        const withDeleted = !!input.withDeleted; //         <--
+        console.log("INPUT: ", input)
         return {
             name: input.name,
             maxPrice,
@@ -92,6 +116,8 @@ export class ProductFilterMapper {
             orderBy: this.mapOrderBy(input.orderBy),
             page: input.page,
             limit: input.limit,
+            onlyDeleted,
+            withDeleted
         }
     }
 

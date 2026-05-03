@@ -1,7 +1,7 @@
-import { UserRestoreByIdUseCase } from "@/backend/src/application/user/use-case/user-restore.usecase";
-import { DomainError } from "@/backend/src/domain/errors/domain.error";
-import { prisma } from "@/backend/src/infrastructure/database/prisma/client";
-import { PrismaUserRepository } from "@/backend/src/infrastructure/database/repositories/prisma-user.repository";
+import { UserRestoreByIdUseCase } from "@/src/application/user/use-case/user-restore.usecase";
+import { DomainError } from "@/src/domain/errors/domain.error";
+import { prisma } from "@/src/infrastructure/database/prisma/client";
+import { PrismaUserRepository } from "@/src/infrastructure/database/repositories/prisma-user.repository";
 import { NextRequest, NextResponse } from "next/server";
 import mapDomainErrorToStatus from "../../../mapDomainErrorToStatus.error";
 
@@ -18,9 +18,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
         const restoreUseCase = makeRestoreUserUseCase();
 
-        await restoreUseCase.execute({
-            id,
-        });
+        await restoreUseCase.execute({ id });
 
         return NextResponse.json({ status: 200 });
 

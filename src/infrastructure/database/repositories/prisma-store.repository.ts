@@ -20,7 +20,7 @@ export class PrismaStoreRepository implements StoreRepository {
         const store = await this.prisma.store.findMany({
             where: { 
                 name: {
-                    contains: name,
+                    equals: name,
                     mode: "insensitive",
                 }
              }
@@ -44,7 +44,8 @@ export class PrismaStoreRepository implements StoreRepository {
                 name: filters.name
                     ? normalizeName(filters.name)
                     : undefined,
-            }
+            },
+            orderBy: { name: "asc" }
         })
 
         return stores.map(s => this.toDomain(s));
