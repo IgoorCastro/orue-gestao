@@ -6,6 +6,8 @@ import { PrismaMaterialRepository } from "@/src/infrastructure/database/reposito
 import { FindMaterialsUseCase } from "@/src/application/meterial/usecase/material-find.usecase";
 import { UpdateMaterialUseCase } from "@/src/application/meterial/usecase/material-save.usecase";
 import { DeleteMaterialByIdUseCase } from "@/src/application/meterial/usecase/material-delete.usecase";
+import { z } from "zod";
+import { UpdateMaterialSchema } from "@/src/lib/schemas/material.schema";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -43,22 +45,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         const body = await req.json();
         const { id } = await params;
 
-        // validação basica
-        if (Object.keys(body).length === 0)
-            return NextResponse.json(
-                { message: "Nenhum dado para atualizar" },
-                { status: 400 }
-            );
+        // Validar entrada com Zod
+        const validatedData = UpdateMaterialSchema.parse(body);
 
         const updateMaterialUseCase = new UpdateMaterialUseCase(new PrismaMaterialRepository(prisma));
 
         const material = await updateMaterialUseCase.execute({
             id,
-            name: body.name,
+            ...validatedData,
         })
 
         return NextResponse.json(material, { status: 200 });
     } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json(
+                { message: "Dados inválidos", details: error.issues },
+                { status: 400 }
+            );
+        }
         if (error instanceof DomainError) {
             return NextResponse.json(
                 { message: error.message },

@@ -11,12 +11,17 @@ import { PrismaStoreRepository } from "@/src/infrastructure/database/repositorie
 import { prisma } from "@/src/infrastructure/database/prisma/client";
 import { UUIDGenerator } from "@/src/infrastructure/services/uuid-generator";
 import { FindStoresUseCase } from "@/src/application/store/use-case/store-find.usecase";
+import { z } from "zod";
+import { CreateStoreSchema } from "@/src/lib/schemas/store.schema";
 
 // Rota POST
 // body esperado: name
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
+
+        // Validar entrada com Zod
+        const { name } = CreateStoreSchema.parse(body);
 
         function makeCreateUseCase() {
             const storeRepository = new PrismaStoreRepository(prisma);
@@ -26,10 +31,16 @@ export async function POST(req: NextRequest) {
 
         const createUseCase = makeCreateUseCase();
 
-        const store = await createUseCase.execute({ name: body.name });
+        const store = await createUseCase.execute({ name });
 
         return NextResponse.json(store, { status: 200 });
     } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json(
+                { message: "Dados inválidos", details: error.issues },
+                { status: 400 }
+            );
+        }
         if (error instanceof DomainError) {
             return NextResponse.json(
                 { message: error.message },

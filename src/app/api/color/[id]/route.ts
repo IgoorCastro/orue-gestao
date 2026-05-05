@@ -6,6 +6,8 @@ import mapDomainErrorToStatus from "../../mapDomainErrorToStatus.error";
 import { UpdateColorUseCase } from "@/src/application/color/usecase/color-save.usecase";
 import { DeleteColorByIdUseCase } from "@/src/application/color/usecase/color-delete.usecase";
 import { FindColorByIdUseCase } from "@/src/application/color/usecase/color-find-byId.usecase";
+import { z } from "zod";
+import { UpdateColorSchema } from "@/src/lib/schemas/color.schema";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -54,22 +56,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         const body = await req.json();
         const { id } = await params;
 
-        // validação basica
-        if (Object.keys(body).length === 0)
-            return NextResponse.json(
-                { message: "Nenhum dado para atualizar" },
-                { status: 400 }
-            );
+        // Validar entrada com Zod
+        const validatedData = UpdateColorSchema.parse(body);
 
         const updateColorUseCase = new UpdateColorUseCase(new PrismaColorRepository(prisma));
 
         const color = await updateColorUseCase.execute({
             id,
-            name: body.name,
+            ...validatedData,
         })
 
         return NextResponse.json(color, { status: 200 });
     } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json(
+                { message: "Dados inválidos", details: error.issues },
+                { status: 400 }
+            );
+        }
         if (error instanceof DomainError) {
             return NextResponse.json(
                 { message: error.message },

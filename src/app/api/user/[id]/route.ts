@@ -7,6 +7,8 @@ import { DeleteUserByIdUseCase } from "@/src/application/user/use-case/user-dele
 import { BcryptService } from "@/src/infrastructure/services/bcrypt.service";
 import { UpdateUserUseCaseUseCase } from "@/src/application/user/use-case/user-save.usecase";
 import { FindUserByIdUseCase } from "@/src/application/user/use-case/user-find-byId.usecase";
+import { z } from "zod";
+import { UpdateUserSchema } from "@/src/lib/schemas/user.schema";
 
 // get por id via params
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -59,14 +61,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         const body = await req.json();
         const { id } = await params;
 
-        if (Object.keys(body).length === 0) 
-            return NextResponse.json(
-                { message: "Nenhum dado para atualizar" },
-                { status: 400 }
-            );
-
-        console.log("body: ", body);
-        console.log("id: ", id)
+        // Validar entrada com Zod
+        const validatedData = UpdateUserSchema.parse(body);
 
         function makeUpdateUserUseCase() {
             const userRepository = new PrismaUserRepository(prisma);
@@ -79,12 +75,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
         const user = await updateUseCase.execute({
             id: id,
-            ...body
+            ...validatedData
         });
 
         return NextResponse.json(user, { status: 200 });
 
     } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json(
+                { message: "Dados inválidos", details: error.issues },
+                { status: 400 }
+            );
+        }
         if (error instanceof DomainError) {
             return NextResponse.json(
                 { message: error.message },

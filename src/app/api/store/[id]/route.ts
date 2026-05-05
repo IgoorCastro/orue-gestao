@@ -11,6 +11,8 @@ import { PrismaStoreRepository } from "@/src/infrastructure/database/repositorie
 import { prisma } from "@/src/infrastructure/database/prisma/client";
 import { UpdateStoreUseCase } from "@/src/application/store/use-case/store-save.usecase";
 import { DeleteStoreByIdUseCase } from "@/src/application/store/use-case/store-delete.usecase";
+import { z } from "zod";
+import { UpdateStoreSchema } from "@/src/lib/schemas/store.schema";
 
 // Rota GET
 export async function GET(_: NextResponse, { params }: { params: Promise<{ id: string }> }) {
@@ -44,27 +46,36 @@ export async function PATCH(req: NextResponse, { params }: { params: Promise<{ i
         const { id } = await params;
         const body = await req.json();
 
+        // Validar entrada com Zod
+        const validatedData = UpdateStoreSchema.parse(body);
+
         const updateUseCase = new UpdateStoreUseCase(new PrismaStoreRepository(prisma));
 
         const store = await updateUseCase.execute({
             id,
-            ...body,
+            ...validatedData,
         });
 
         return NextResponse.json(store, { status: 200 });
     } catch (error: unknown) {
-            if (error instanceof DomainError) {
-                return NextResponse.json(
-                    { message: error.message },
-                    { status: mapDomainErrorToStatus(error) }
-                );
-            }
-    
+        if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { message: "Erro interno" },
-                { status: 500 }
+                { message: "Dados inválidos", details: error.issues },
+                { status: 400 }
             );
         }
+        if (error instanceof DomainError) {
+            return NextResponse.json(
+                { message: error.message },
+                { status: mapDomainErrorToStatus(error) }
+            );
+        }
+
+        return NextResponse.json(
+            { message: "Erro interno" },
+            { status: 500 }
+        );
+    }
 }
 
 // Rota DELETE

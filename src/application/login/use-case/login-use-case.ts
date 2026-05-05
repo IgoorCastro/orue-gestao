@@ -13,6 +13,7 @@ export class LoginUseCase {
   ) { }
 
   async execute(data: LoginInputDTO): Promise<LoginOutputDTO | null> {
+    console.log("DATA: ")
     // procura um usuario pelo nickname
     const user = await this.userRepository.findByNickname(data.nickname);
 
