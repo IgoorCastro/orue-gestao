@@ -8,6 +8,7 @@ export type StockMovimentFilters = Readonly<{
     userId?: string,
     fromStockId?: string,
     toStockId?: string,
+    filterStock?: string, // Novo filtro: busca movimentações onde o estoque aparece como fromStock OU toStock
 
     page?: number;
     limit?: number;

@@ -15,7 +15,7 @@ const LoginSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    // 1️⃣ Rate limit PRIMEIRO (economiza processamento)
+    // Rate limit PRIMEIRO (economiza processamento)
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
     const rateLimit = checkRateLimit(ip, 5, 15 * 60 * 1000);
     
@@ -26,18 +26,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2️⃣ Parse JSON
+    // Parse JSON
     const body = await request.json();
 
-    // 3️⃣ Validar entrada
+    // Validar entrada
     const { nickname, password } = LoginSchema.parse(body);
 
-    // 4️⃣ Injeção de Dependência
+    // Injeção de Dependência
     const userRepository = new PrismaUserRepository(prisma);
     const hashService = new BcryptService();
     const loginUseCase = new LoginUseCase(userRepository, hashService);
 
-    // 5️⃣ Executar autenticação
+    // Executar autenticação
     const session = await loginUseCase.execute({ nickname, password });
 
     if (!session) {
@@ -47,17 +47,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // 6️⃣ Criar resposta com cookie HttpOnly
+    // Criar resposta com cookie HttpOnly
     const response = NextResponse.json({
       user: session.user,
       token: session.token,
     });
 
+    const sessionTime = 12; // horas
     response.cookies.set('auth-token', session.token, {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      maxAge: 15 * 60,
+      maxAge: sessionTime * 60 * 60,
       path: '/',
     });
 
@@ -71,7 +72,7 @@ export async function POST(request: Request) {
       );
     }
 
-    console.error("Login error:", error); // ✅ Sem credenciais
+    console.error("Login error:", error); // Sem credenciais
     return NextResponse.json(
       { error: "Erro interno no servidor" },
       { status: 500 }
