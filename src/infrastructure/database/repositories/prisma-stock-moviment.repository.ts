@@ -70,10 +70,20 @@ export class PrismaStockMovimentRepository implements StockMovimentRepository {
         const where: Prisma.StockMovimentWhereInput = {
             ...(filters.type && { type: filters.type as PrismaStockMovimentType }),
             ...(filters.quantity && { quantity: filters.quantity }),
-            ...(filters.fromStockId && { fromStockId: filters.fromStockId }),
-            ...(filters.toStockId && { toStockid: filters.toStockId }),
             ...(filters.productStockId && { productStockId: filters.productStockId }),
             ...(filters.userId && { userId: filters.userId }),
+
+            // Lógica OR para filterStock: busca movimentações onde o estoque aparece como fromStock OU toStock
+            ...(filters.filterStock && {
+                OR: [
+                    { fromStockId: filters.filterStock },
+                    { toStockid: filters.filterStock }
+                ]
+            }),
+
+            // Se filterStock não for fornecido, mantém os filtros individuais
+            ...(!filters.filterStock && filters.fromStockId && { fromStockId: filters.fromStockId }),
+            ...(!filters.filterStock && filters.toStockId && { toStockid: filters.toStockId }),
 
             totalPrice: filters.price
                 ? {

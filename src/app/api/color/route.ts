@@ -6,14 +6,16 @@ import { UUIDGenerator } from "@/src/infrastructure/services/uuid-generator";
 import { NextRequest, NextResponse } from "next/server";
 import mapDomainErrorToStatus from "../mapDomainErrorToStatus.error";
 import { FindColorsUseCase } from "@/src/application/color/usecase/color-find.usecase";
+import { z } from "zod";
+import { CreateColorSchema } from "@/src/lib/schemas/color.schema";
 
 // Rota para criação de uma nova cor
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
 
-        // body esperado para nova cor
-        const { name } = body;
+        // Validar entrada com Zod
+        const { name } = CreateColorSchema.parse(body);
 
         function makeCreateColorUseCase() {
             const colorRepository = new PrismaColorRepository(prisma);
@@ -28,6 +30,12 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(color, { status: 201 });
     } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json(
+                { message: "Dados inválidos", details: error.issues },
+                { status: 400 }
+            );
+        }
         if (error instanceof DomainError) {
             return NextResponse.json(
                 { message: error.message },

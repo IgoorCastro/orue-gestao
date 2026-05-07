@@ -6,14 +6,16 @@ import mapDomainErrorToStatus from "../mapDomainErrorToStatus.error";
 import { PrismaModelRepository } from "@/src/infrastructure/database/repositories/prisma-model.repository";
 import { CreateModelUseCase } from "@/src/application/model/usecase/model-create.usecase";
 import { FindModelsUseCase } from "@/src/application/model/usecase/model-find.usecase";
+import { z } from "zod";
+import { CreateColorSchema } from "@/src/lib/schemas/color.schema";
 
 // Rota para criação de um novo modelo
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
 
-        // body esperado para novo modelo
-        const { name } = body;
+        // Validar entrada com Zod (usando schema de cor como modelo simples)
+        const { name } = CreateColorSchema.parse(body);
 
         function makeCreateModelUseCase() {
             const modelepository = new PrismaModelRepository(prisma);
@@ -28,6 +30,12 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(model, { status: 201 });
     } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json(
+                { message: "Dados inválidos", details: error.issues },
+                { status: 400 }
+            );
+        }
         if (error instanceof DomainError) {
             return NextResponse.json(
                 { message: error.message },

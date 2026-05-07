@@ -59,7 +59,8 @@ export async function POST(req: NextRequest) {
 
 // Rota GET com params
 // usar para pesquisa com filtros
-// filtros: type, quantity, fromStockId, toStockId, productStockId, userId
+// filtros: type, quantity, fromStockId, toStockId, productStockId, userId, filterStock
+// filterStock: busca movimentações onde o estoque aparece como fromStock OU toStock
 // preço (minimo e maximo)
 // limit: limite de dados retornados na query
 // page: pagina do array retornada (array de 10 produtos, com limit = 5 possui duas pages (5 + 5))
@@ -74,6 +75,7 @@ export async function GET(req: NextRequest) {
         const toStockId = searchParams.get("toStockId") ?? undefined;
         const productStockId = searchParams.get("productStockId") ?? undefined;
         const userId = searchParams.get("user") ?? undefined;
+        const filterStock = searchParams.get("filterStock") ?? undefined; // Novo parâmetro
         const priceGte = parseNumber(searchParams.get("price_gte"));
         const priceLte = parseNumber(searchParams.get("price_lte"));
         const createdAtGte = searchParams.get("fromDate") ?? undefined; // MIN
@@ -98,6 +100,7 @@ export async function GET(req: NextRequest) {
         const filter = await filterMapper.map({
             createdAtGte,
             createdAtLte,
+            filterStock, // Novo parâmetro
             fromStockId,
             limit,
             orderBy,

@@ -6,6 +6,8 @@ import { PrismaModelRepository } from "@/src/infrastructure/database/repositorie
 import { FindModelsUseCase } from "@/src/application/model/usecase/model-find.usecase";
 import { UpdateModelUseCase } from "@/src/application/model/usecase/model-save.usecase";
 import { DeleteModelByIdUseCase } from "@/src/application/model/usecase/model-delete.usecase";
+import { z } from "zod";
+import { UpdateColorSchema } from "@/src/lib/schemas/color.schema";
 
 // GET por ID
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -43,24 +45,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         const body = await req.json();
         const { id } = await params;
 
-        // validação basica
-        if (Object.keys(body).length === 0)
-            return NextResponse.json(
-                { message: "Nenhum dado para atualizar" },
-                { status: 400 }
-            );
-
-            console.log("BODY: ", body)
+        // Validar entrada com Zod
+        const validatedData = UpdateColorSchema.parse(body);
 
         const updateModelUseCase = new UpdateModelUseCase(new PrismaModelRepository(prisma));
 
         const model = await updateModelUseCase.execute({
             id,
-            name: body.name,
+            ...validatedData,
         })
 
         return NextResponse.json(model, { status: 200 });
     } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json(
+                { message: "Dados inválidos", details: error.issues },
+                { status: 400 }
+            );
+        }
         if (error instanceof DomainError) {
             return NextResponse.json(
                 { message: error.message },

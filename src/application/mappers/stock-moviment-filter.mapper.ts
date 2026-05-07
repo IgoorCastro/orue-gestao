@@ -8,6 +8,7 @@ type FindStockMovimentFilteredInputDto = {
     readonly toStockId?: string;
     readonly productStockId?: string;
     readonly userId?: string;
+    readonly filterStock?: string; // Novo parâmetro
 
     readonly priceGte?: number;
     readonly priceLte?: number;
@@ -28,6 +29,7 @@ export type FindStockMovimentFilteredOutputDto = Readonly<{
     toStockId?: string;
     productStockId?: string;
     userId?: string;
+    filterStock?: string; // Novo campo
 
     price?: {
         gte?: number;
@@ -81,6 +83,7 @@ export class StockMovimentFilterMapper {
             toStockId: input.toStockId,
             productStockId: input.productStockId,
             userId: input.userId,
+            filterStock: input.filterStock, // Novo campo
 
             price,
             createdAt,

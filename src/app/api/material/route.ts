@@ -6,14 +6,16 @@ import mapDomainErrorToStatus from "../mapDomainErrorToStatus.error";
 import { PrismaMaterialRepository } from "@/src/infrastructure/database/repositories/prisma-material.repository";
 import { FindMaterialsUseCase } from "@/src/application/meterial/usecase/material-find.usecase";
 import { CreateMaterialUseCase } from "@/src/application/meterial/usecase/material-create.usecase";
+import { z } from "zod";
+import { CreateMaterialSchema } from "@/src/lib/schemas/material.schema";
 
 // Rota para criação de um novo material
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
 
-        // body esperado para novo material
-        const { name } = body;
+        // Validar entrada com Zod
+        const { name } = CreateMaterialSchema.parse(body);
 
         function makeCreateMaterialUseCase() {
             const materialRepository = new PrismaMaterialRepository(prisma);
@@ -28,6 +30,12 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(material, { status: 201 });
     } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json(
+                { message: "Dados inválidos", details: error.issues },
+                { status: 400 }
+            );
+        }
         if (error instanceof DomainError) {
             return NextResponse.json(
                 { message: error.message },
