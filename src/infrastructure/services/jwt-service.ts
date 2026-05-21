@@ -1,8 +1,9 @@
 import { hasRoutePermission, ROUTE_PERMISSIONS } from "@/src/domain/auth/permissions";
-import { jwtDecode } from "jwt-decode";
+import jwt from "jsonwebtoken";
 import { NextRequest, NextResponse } from "next/server";
 
 interface DecodedToken {
+  sub: string;
   role: string;
   exp?: number;
 }
@@ -21,33 +22,33 @@ export function authGuard(request: NextRequest) {
   ) {
     // Se estiver logado e tentar ir para /login via URL, manda para a home
     if (pathname === '/login' && token) {
-      return NextResponse.redirect(new URL('/', request.url));
+      try{
+        validateToken(token);
+        return NextResponse.redirect(new URL('/', request.url));
+      }catch { }
     }
     return NextResponse.next();
   }
 
-  // Função auxiliar para decodificar
-  const decodeToken = (t: string): DecodedToken | null => {
-    try {
-      const decoded = jwtDecode<DecodedToken>(t);
-      if (decoded.exp && Date.now() >= decoded.exp * 1000) return null;
-      return decoded;
-    } catch {
-      return null;
-    }
-  };
-
-  // 2. PROTEÇÃO GLOBAL: Qualquer rota (que não caiu na exceção acima) exige token
+  // PROTEÇÃO GLOBAL: Qualquer rota (que não caiu na exceção acima) exige token
   if (!token) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  const decoded = decodeToken(token);
-  if (!decoded) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  let decoded: DecodedToken;
+
+  try {
+    decoded = validateToken(token);
+  } catch {
+    // token inválido, expirado ou adulterado
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    // apaga o token da sessão
+    response.cookies.delete("auth-token");
+
+    return response;
   }
 
-  // 3. VALIDAÇÃO DE PERMISSÕES POR ROLE
+  // VALIDAÇÃO DE PERMISSÕES POR ROLE
   const isProtectedRoute = ROUTE_PERMISSIONS.some(route => pathname.startsWith(route.path));
 
   if (isProtectedRoute) {
@@ -61,8 +62,10 @@ export function authGuard(request: NextRequest) {
 }
 
 // checagem de autenticação
-export async function getAuthTokem(request: NextRequest) {
+export async function getAuthToken(request: NextRequest) {
   const token = request.cookies.get("auth-token")?.value;
+
+  // verifica a existencia do token
   if (!token) {
     return {
       valid: false, error: NextResponse.json(
@@ -71,21 +74,31 @@ export async function getAuthTokem(request: NextRequest) {
     }
   }
 
+  // validando o token
   try {
-    const decoded = jwtDecode<any>(token);
-    if (decoded.exp && Date.now() >= decoded.exp * 1000) {
-      return {
-        valid: false, error: NextResponse.json(
-          { error: "Token expired" }, { status: 401 }
-        )
-      };
-    }
+    const decoded = validateToken(token);
+
     return { valid: true, decoded };
-  } catch {
+  } catch (error) {
     return {
-      valid: false, error: NextResponse.json(
-        { error: "Invalid token" }, { status: 401 }
+      valid: false,
+      error: NextResponse.json(
+        {
+          error:
+            error instanceof jwt.TokenExpiredError
+              ? "Token expired"
+              : "Invalid token"
+        },
+        { status: 401 }
       )
     };
   }
+}
+
+// valida o token e verifica a assinatura
+function validateToken(token: string) {
+  return jwt.verify(
+    token,
+    process.env.JWT_SECRET!
+  ) as DecodedToken;
 }
