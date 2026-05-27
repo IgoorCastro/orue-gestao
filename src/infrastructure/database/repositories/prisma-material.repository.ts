@@ -69,7 +69,7 @@ export class PrismaMaterialRepository implements MaterialRepository {
                     ? { not: null } // retorna apenas os produtos deletados
                     : filters.withDeleted
                         ? undefined // retorna produtos desativados/ não desativados
-                        : null, // retorna apenas os produtos não desativados
+                        : null, // retorna apenas os produtos não desativados ..::Padrão::..
             },
             orderBy: { name: "asc" }
         })

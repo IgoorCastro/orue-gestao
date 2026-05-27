@@ -1,54 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { LayoutDashboard, Lock, User, Loader2 } from "lucide-react";
 import { Button } from "@/src/ui/components/ui/button";
 import { Input } from "@/src/ui/components/ui/input";
 import { Label } from "@/src/ui/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/ui/components/ui/card";
-import { feedback } from "@/src/ui/lib/feedback";
+import { useLogin } from "./hook/use-login";
 
 export default function LoginPage() {
-    const router = useRouter();
-    const [nickname, setNickname] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const {
+        nickname,
+        password,
+        isLoading,
 
-    const handleSubmit = async (e: React.SubmitEvent) => {
-        e.preventDefault();
-        
-        setIsLoading(true);
-        setError(null);
+        setNickname,
+        setPassword,
 
-        try {
-            // ✅ Usar URL relativa (o Next.js vai rotear para o backend)
-            const res = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include", // Incluir cookies na requisição
-                body: JSON.stringify({ nickname, password }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                // Token já está em HttpOnly cookie (seguro!)
-                feedback.success("Bem-vindo!");
-                router.push("/"); // Redirecionará baseado na role
-            } else {
-                feedback.error(data.error || "Erro no login");
-                setError(data.error);
-            }
-        } catch (err) {
-            feedback.error("Erro ao conectar ao servidor");
-            setError("Erro ao conectar ao servidor");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
+        handleSubmit,
+    } = useLogin();
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
             <Card className="w-full max-w-md border-slate-200 dark:border-slate-800 shadow-xl">

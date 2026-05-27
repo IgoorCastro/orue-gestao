@@ -9,15 +9,15 @@ export class MaterialService extends BaseService<Material> {
     return resp.data;
   }
 
-  update(id: string, data: Partial<CreateMaterialDto>) {
+  async update(id: string, data: Partial<CreateMaterialDto>) {
     return api.patch(`${this.endpoint}/${id}`, data);
   }
 
-  delete(id: string) {
+  async delete(id: string) {
     return api.delete(`${this.endpoint}/${id}`);
   }
 
-  restore(id: string) {
+  async restore(id: string) {
     return api.patch(`${this.endpoint}/${id}/restore`);
   }
 }

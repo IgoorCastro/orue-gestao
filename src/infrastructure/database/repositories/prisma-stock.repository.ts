@@ -4,6 +4,7 @@ import { Store } from "@/src/domain/entities/store.entity";
 import { StockType } from "@/src/domain/enums/stock-type.enum";
 import { StockRepository } from "@/src/domain/repositories/stock.repository";
 import normalizeName from "@/src/domain/utils/normalize-name";
+import { StockFiltersType } from "@/src/domain/types/stock-filters.type";
 
 type StockWithRelations = Prisma.StockGetPayload<{
     include: {
@@ -58,7 +59,7 @@ export class PrismaStockRepository implements StockRepository {
         return stocks.map(stock => this.toDomain(stock));
     }
 
-    async findMany(filters: { name?: string; storeId?: string; type?: StockType; }): Promise<Stock[]> {
+    async findMany(filters: StockFiltersType): Promise<Stock[]> {
         const stocks = await this.prisma.stock.findMany({
             where: {
                 name: filters.name
@@ -66,6 +67,14 @@ export class PrismaStockRepository implements StockRepository {
                     : undefined,
                 type: filters.type ?? undefined,
                 storeId: filters.storeId,
+                // Filtragem com 3 opções:
+                // onlyDeleted retorna apenas items deletados
+                // withDeleted pode retornor com items deletados ou não
+                deletedAt: filters.onlyDeleted
+                    ? { not: null } // retorna apenas os produtos deletados
+                    : filters.withDeleted
+                        ? undefined // retorna produtos desativados/ não desativados
+                        : null, // retorna apenas os produtos não desativados ..::Padrão::..
             },
             include: {
                 Store: true,

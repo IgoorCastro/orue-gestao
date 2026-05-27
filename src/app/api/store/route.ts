@@ -84,11 +84,17 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
 
         const name = searchParams.get("name") ?? undefined;
+        
+        // filtragem com ou sem items deletados
+        const onlyDeleted = searchParams.get("onlyDeleted") ?? undefined;
+        const withDeleted = searchParams.get("withDeleted") ?? undefined;
 
         const findUseCase = new FindStoresUseCase(new PrismaStoreRepository(prisma));
 
         const stores = await findUseCase.execute({
             name,
+            withDeleted: !!withDeleted,
+            onlyDeleted: !!onlyDeleted,
         })
 
         return NextResponse.json(stores, { status: 200 });

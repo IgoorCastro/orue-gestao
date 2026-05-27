@@ -5,6 +5,8 @@ import { prisma } from "@/src/infrastructure/database/prisma/client";
 import { LoginUseCase } from "@/src/application/login/use-case/login-use-case";
 import { checkRateLimit } from "@/src/lib/ratelimit";
 import { z } from "zod";
+import { DomainError } from "@/src/domain/errors/domain.error";
+import mapDomainErrorToStatus from "../../mapDomainErrorToStatus.error";
 
 // Validação de entrada
 const LoginSchema = z.object({
@@ -17,7 +19,7 @@ export async function POST(request: Request) {
     // Rate limit PRIMEIRO (economiza processamento)
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
     const rateLimit = await checkRateLimit(ip, 5, 15 * 60 * 1000);
-    
+
     if (!rateLimit.success) {
       return NextResponse.json(
         { error: `Muitas tentativas. Tente novamente em ${rateLimit.resetAfter}s` },
@@ -68,6 +70,12 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Dados inválidos", details: error.issues },
         { status: 400 }
+      );
+    }
+    if (error instanceof DomainError) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: mapDomainErrorToStatus(error) }
       );
     }
 

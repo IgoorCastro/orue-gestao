@@ -9,15 +9,15 @@ export class ProductService extends BaseServicePaginated<Product> {
     return resp.data;
   }
 
-  update(id: string, data: Partial<UpdateProductDto>) {
+  async update(id: string, data: Partial<UpdateProductDto>) {
     return api.patch(`${this.endpoint}/${id}`, data);
   }
 
-  delete(id: string) {
+  async delete(id: string) {
     return api.delete(`${this.endpoint}/${id}`);
   }
 
-  restore(id: string) {
+  async restore(id: string) {
     return api.patch(`${this.endpoint}/${id}/restore`)
   }
 }

@@ -21,6 +21,9 @@ export type FindStockFilteredDto = Readonly<{
     name?: string,
     storeId?: string,
     type?: StockType,
+    
+    onlyDeleted?: boolean,
+    withDeleted?: boolean,
 }>
 
 export type FindStockOutputDto = Readonly<{

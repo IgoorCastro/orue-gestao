@@ -4,6 +4,7 @@ import { UserRepository } from "@/src/domain/repositories/user.repository";
 import { HashService } from "@/src/domain/services/hash.service";
 import { LoginInputDTO, LoginOutputDTO } from "../dto/login.dto";
 import jwt from 'jsonwebtoken';
+import { ValidationError } from "@/src/domain/errors/validation.error";
 
 export class LoginUseCase {
   constructor(
@@ -17,6 +18,9 @@ export class LoginUseCase {
 
     // nickname não existente
     if (!user) return null;
+
+    // verifica se o usuario está desativado
+    if (!user.isActive()) throw new ValidationError("Usuário desativado")
 
     // compara a senha digitada com a senha do usuario
     const isPasswordValid = await this.hashService.compare(

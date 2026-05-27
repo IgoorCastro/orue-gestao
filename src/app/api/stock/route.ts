@@ -82,6 +82,11 @@ export async function GET(req: NextRequest) {
         const name = searchParams.get("name") ?? undefined;
         const inputType = searchParams.get("type") ?? undefined;
         const storeId = searchParams.get("storeId") ?? undefined;
+        
+        // filtragem com ou sem items deletados
+        const onlyDeleted = searchParams.get("onlyDeleted") ?? undefined;
+        const withDeleted = searchParams.get("withDeleted") ?? undefined;
+
         // mapeamento do type
         const allowedTypes = Object.keys(StockType);
         const type = allowedTypes.includes(inputType as StockType)
@@ -92,7 +97,9 @@ export async function GET(req: NextRequest) {
         const stocks = await findUseCase.execute({
             name,
             type: type,
-            storeId
+            storeId,
+            withDeleted: !!withDeleted,
+            onlyDeleted: !!onlyDeleted,
         })
 
         return NextResponse.json(stocks, { status: 200 });

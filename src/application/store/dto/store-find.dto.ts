@@ -8,6 +8,9 @@ export type FindStoreByNameInputDto = Readonly<{
 
 export type FindStoreFilteredDto = Readonly<{
     name?: string,
+    
+    onlyDeleted?: boolean,
+    withDeleted?: boolean,
 }>;
 
 export type FindStoreOutputDto = Readonly<{

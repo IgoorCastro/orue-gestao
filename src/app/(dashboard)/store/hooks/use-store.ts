@@ -3,17 +3,17 @@
 import { feedback } from "@/src/ui/lib/feedback";
 import { StoreService } from "@/src/ui/services/store.service";
 import { Store } from "@/src/ui/types/store";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
+
+const storeService = new StoreService("/store");
 
 export function useStore() {
     const [stores, setStores] = useState<Store[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [refreshSignal, setRefreshSignal] = useState<boolean>(false);
 
-    const storeService = useMemo(() => new StoreService("/store"), []);
-
     useEffect(() => {
-        storeService.findAll()
+        storeService.findAll({ withDeleted: true })
             .then((res) => {
                 setStores(res);
                 setLoading(false)
