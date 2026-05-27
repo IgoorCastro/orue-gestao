@@ -17,6 +17,8 @@ type InboundItemList = {
     unitPrice: number
 }
 
+const sm = new StockMovimentService("/stockMoviment");
+
 export function useInbound() {
     // Estados para a lista "carrinho"
     const [items, setItems] = useState<InboundItemList[]>([]);
@@ -83,7 +85,61 @@ export function useInbound() {
         setItems(items.filter((_, i) => i !== index));
     };
 
+    // Lógica de barcode: busca produto e adiciona ou soma quantidade
+    const handleBarCodeScanned = (barcode: string, quantity: number) => {
+        // Busca o produto no array padrão por barcode
+        const product = defaultList.find(p => p.barcode?.toLowerCase() === barcode.toLowerCase());
+
+        // Produto não encontrado na lista atual
+        if (!product) {
+            feedback.error(`Produto com código ${barcode} não encontrado no estoque atual`);
+            return;
+        }
+
+        if (!toStock) {
+            
+            feedback.error("Selecione um estoque de destino antes de adicionar produtos");
+            return;
+        }
+
+        // Verifica se o produto já existe no carrinho
+        const existingItemIndex = items.findIndex(
+            item => item.productId === product.id && item.toStockId === toStock
+        );
+
+        if (existingItemIndex >= 0) {
+            // Produto já existe > soma quantidade
+            const updatedItems = [...items];
+            updatedItems[existingItemIndex].quantity += quantity;
+            updatedItems[existingItemIndex].totalPrice = 
+                updatedItems[existingItemIndex].unitPrice * updatedItems[existingItemIndex].quantity;
+            setItems(updatedItems);
+            feedback.success(`${product.name} - Quantidade aumentada`);
+            clearState();
+        } else {
+            // Produto novo > adiciona ao carrinho
+            const newItem: InboundItemList = {
+                productId: product.id,
+                name: product.name,
+                size: product.size,
+                quantity: quantity,
+                unitPrice: product.price,
+                totalPrice: product.price,
+                toStockId: toStock,
+            };
+            setItems([...items, newItem]);
+            feedback.success(`${product.name} adicionado ao carrinho`);
+            clearState();
+        }
+    };
+
     const clearState = () => {
+        setProductId("");
+        setSelectedProduct(null);
+        setQuantity(1);
+    }
+
+    const clearStateFull = () => {
         setItems([]);
         setToStock("");
         setProductId("");
@@ -104,7 +160,6 @@ export function useInbound() {
         }
 
         try {
-            const sm = new StockMovimentService("/stockMoviment");
 
             // Aqui usamos Promise.all para salvar todos os itens da lista
             const promises = items.map(item =>
@@ -124,7 +179,7 @@ export function useInbound() {
             // Sucesso!
             feedback.dismiss(); // Remove o loading
             feedback.success(`Entrada de ${items.length} itens realizada com sucesso!`);
-            clearState();
+            clearStateFull();
         } catch (error) {
             feedback.dismiss();
             feedback.error(error); // O utilitário já trata a mensagem de erro da API
@@ -152,5 +207,6 @@ export function useInbound() {
         handleSubmit,
         handleAddItem,
         removeItem,
+        handleBarCodeScanned,
     }
 }

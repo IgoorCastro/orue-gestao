@@ -26,11 +26,15 @@ export class ProductStockService extends BaseServicePaginated<ProductStock> {
     return resp.data;
   }
 
-  update(id: string, data: Partial<CreateProductStockDto>) {
-    return api.put(`${this.endpoint}/${id}`, data);
-  }
+  // update(id: string, data: Partial<CreateProductStockDto>) {
+  //   return api.put(`${this.endpoint}/${id}`, data);
+  // }
 
   delete(id: string) {
     return api.delete(`${this.endpoint}/${id}`);
+  }
+
+  restore(id: string) {
+    return api.patch(`${this.endpoint}/${id}/restore`);
   }
 }

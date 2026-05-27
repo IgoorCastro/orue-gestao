@@ -213,29 +213,29 @@ export function ProductFilterForm({ onApply, onClose, defaultFilter = {} }: Prop
                         value={filters.mlProductId || ""}
                         onChange={(e) => update("mlProductId", e.target.value)}
                     />
-                </div>                
+                </div>
             </div>
             <div className="flex flex-col">
-                    <p className="text-xs pl-1 pb-1 font-medium text-muted-foreground">Visualização</p>
-                    <Tabs
-                        defaultValue="none"
-                        value={getUIValue()}
-                        onValueChange={handleStatusChange}
-                        className="w-full"
-                    >
-                        <TabsList className="grid w-full grid-cols-3 h-9">
-                            <TabsTrigger value="none" className="text-[11px]">
-                                Ativos
-                            </TabsTrigger>
-                            <TabsTrigger value="all" className="text-[11px]">
-                                Todos
-                            </TabsTrigger>
-                            <TabsTrigger value="only" className="text-[11px]">
-                                Desativados
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-                </div>
+                <p className="text-xs pl-1 pb-1 font-medium text-muted-foreground">Visualização</p>
+                <Tabs
+                    defaultValue="none"
+                    value={getUIValue()}
+                    onValueChange={handleStatusChange}
+                    className="w-full"
+                >
+                    <TabsList className="grid w-full grid-cols-3 h-9">
+                        <TabsTrigger value="none" className="text-[11px]">
+                            Ativos
+                        </TabsTrigger>
+                        <TabsTrigger value="all" className="text-[11px]">
+                            Todos
+                        </TabsTrigger>
+                        <TabsTrigger value="only" className="text-[11px]">
+                            Desativados
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            </div>
 
             <div className="flex justify-between mt-4">
                 <Button variant="ghost" onClick={handleClear}>

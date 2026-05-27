@@ -32,6 +32,9 @@ type Props = {
   initialData?: Product;
 };
 
+const productService = new ProductService("/product");
+const productComponenteService = new ProductComponentService("/productComponent");
+
 export function ProductForm({ onSuccess, initialData }: Props) {
   const {
     models: avaliableModels,
@@ -50,10 +53,6 @@ export function ProductForm({ onSuccess, initialData }: Props) {
     setSize, setMlProductId, setModel,
     setColors, setMaterials, setSelectedComponentsProducts,
   } = useProductForm(initialData);
-
-
-  const productService = useMemo(() => new ProductService("/product"), []);
-  const productComponenteService = useMemo(() => new ProductComponentService("/productComponent"), []);
 
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();

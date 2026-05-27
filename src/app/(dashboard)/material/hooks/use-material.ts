@@ -13,7 +13,7 @@ export function useMaterial() {
     const materialService = useMemo(() => new MaterialService("/material"), []);
 
     useEffect(() => {
-        materialService.findAll()
+        materialService.findAll({withDeleted: true})
             .then((res) => {
                 setMaterials(res);
                 setLoading(false);

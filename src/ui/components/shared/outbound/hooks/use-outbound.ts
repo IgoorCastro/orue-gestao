@@ -7,9 +7,23 @@ import { StockMovimentService } from "@/src/ui/services/stock-moviment.service";
 import { ProductStock } from "@/src/ui/types/product-stock";
 import { useEffect, useMemo, useState } from "react";
 
+type OutboundItemList = {
+    name: string
+    quantity: number
+    size?: string
+    fromStockId: string
+    totalPrice: number
+    unitPrice: number
+    productId: string
+    productStockId: string
+}
+
+const psService = new ProductStockService("/productStock");
+const smService = new StockMovimentService("/stockMoviment");
+
 export function useOutbound() {
     // estado de listas
-    const [items, setItems] = useState<any[]>([]);
+    const [items, setItems] = useState<OutboundItemList[]>([]);
     const [avaliableProductStocks, setAvaliableProductStocks] = useState<ProductStock[]>([]);
 
     // estado de seleções do usuario
@@ -27,9 +41,6 @@ export function useOutbound() {
 
     // usuário do contexto
     const user = useUser();
-
-    // Memoizar a service para evitar múltiplas instâncias
-    const psService = useMemo(() => new ProductStockService("/productStock"), []);
 
     // Efeito para buscar produtos SEMPRE que o estoque de origem mudar
     useEffect(() => {
@@ -68,14 +79,15 @@ export function useOutbound() {
             return;
         }
 
-        const newItem = {
-            productStockId: selectedPS.id, // O ID da relação estoque-produto
+        const newItem: OutboundItemList = {
             name: selectedPS.product?.name,
             size: selectedPS.product?.size,
             quantity,
             unitPrice: selectedPS.product?.price || 0,
             totalPrice: (selectedPS.product?.price || 0) * quantity,
-            fromStockId: fromStock
+            fromStockId: fromStock,
+            productId: selectedPS.productId,
+            productStockId: selectedPS.id,
         };
 
         setItems([...items, newItem]);
@@ -90,7 +102,66 @@ export function useOutbound() {
         setItems(items.filter((_, i) => i !== index));
     };
 
+    // Lógica de barcode: busca produto e adiciona ou soma quantidade
+    const handleBarCodeScanned = (barcode: string, quantity: number) => {
+        // Busca o produto no array padrão por barcode
+        const product = avaliableProductStocks.map(ps => ps.product).find(p => p.barcode.toLowerCase() === barcode.toLowerCase());
+        const currentPs = avaliableProductStocks.find(ps => ps.product.id === product?.id);
+
+        if (!fromStock) {
+            feedback.error("Selecione um estoque de destino antes de adicionar produtos");
+            return;
+        }
+
+        if (!product) {
+            feedback.error(`Produto com código ${barcode} não encontrado não encontrado no estoque`);
+            return;
+        }
+
+        if(!currentPs) {
+            feedback.error("Erro durante o processamento do atual produto.");
+            return;
+        }
+
+        // Verifica se o produto já existe no carrinho
+        const existingItemIndex = items.findIndex(
+            item => item.productId === product.id && item.fromStockId === fromStock
+        );
+
+        if (existingItemIndex >= 0) {
+            // Produto já existe > soma quantidade
+            const updatedItems = [...items];
+            updatedItems[existingItemIndex].quantity += quantity;
+            updatedItems[existingItemIndex].totalPrice =
+                updatedItems[existingItemIndex].unitPrice * updatedItems[existingItemIndex].quantity;
+            setItems(updatedItems);
+            feedback.success(`${product.name} - Quantidade aumentada`);
+            clearState();
+        } else {
+            // Produto novo > adiciona ao carrinho
+            const newItem: OutboundItemList = {
+                productId: product.id,
+                name: product.name,
+                size: product.size,
+                quantity: quantity,
+                unitPrice: product.price,
+                totalPrice: product.price,
+                fromStockId: fromStock,
+                productStockId: currentPs.id,
+            };
+            setItems([...items, newItem]);
+            feedback.success(`${product.name} adicionado ao carrinho`);
+            clearState();
+        }
+    };
+
     const clearState = () => {
+        setProductStockId("");
+        setSelectedPS(null);
+        setQuantity(1);
+    };
+
+    const clearStateFull = () => {
         setItems([]);
         setFromStock("");
         setProductStockId("");
@@ -101,7 +172,7 @@ export function useOutbound() {
     const handleSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
         if (items.length === 0) return;
-        
+
         // verifica se há um usuario conectado
         if (!user) {
             feedback.error("Usuário não autenticado. Faça login para registrar movimentações.");
@@ -111,10 +182,8 @@ export function useOutbound() {
         const toastId = feedback.loading("Processando saída de produtos...");
 
         try {
-            const sm = new StockMovimentService("/stockMoviment");
-
             const promises = items.map(item =>
-                sm.create({
+                smService.create({
                     productStockId: item.productStockId,
                     fromStockId: item.fromStockId, // Agora enviamos FROM ao invés de TO
                     quantity: item.quantity,
@@ -129,7 +198,7 @@ export function useOutbound() {
 
             feedback.dismiss(toastId);
             feedback.success(`Saída de ${items.length} itens realizada com sucesso!`);
-            clearState();
+            clearStateFull();
         } catch (error) {
             feedback.dismiss(toastId);
             feedback.error(error);
@@ -156,5 +225,6 @@ export function useOutbound() {
         handleSubmit,
         handleAddItem,
         removeItem,
+        handleBarCodeScanned,
     }
 }

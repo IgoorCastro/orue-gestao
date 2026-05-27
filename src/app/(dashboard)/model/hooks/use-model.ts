@@ -3,17 +3,17 @@
 import { feedback } from "@/src/ui/lib/feedback";
 import { ModelService } from "@/src/ui/services/model.service";
 import { Material } from "@/src/ui/types/material";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
+
+const modelService =new ModelService("/model");
 
 export function useModel() {
     const [models, setModels] = useState<Material[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [refreshSignal, setRefreshSignal] = useState<boolean>(false);
 
-    const modelService = useMemo(() => new ModelService("/model"), []);
-
     useEffect(() => {
-        modelService.findAll()
+        modelService.findAll({ withDeleted: true })
             .then((res) => {
                 setModels(res);
                 setLoading(false);

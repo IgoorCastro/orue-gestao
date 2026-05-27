@@ -38,7 +38,7 @@ export function StockMovimentFilterForm({ onApply, onClose, defaultFilter = {} }
 
     function handleApply() {
         onApply(filters)
-        onClose() // 🔥 fecha modal
+        onClose() // fecha modal
     }
 
     function handleClear() {
@@ -128,6 +128,7 @@ export function StockMovimentFilterForm({ onApply, onClose, defaultFilter = {} }
                     }}
 
                     setDate={(date) => {
+                        console.log("date: ", date)
                         setFilters({ ...filters, fromDate: date?.from, toDate: date?.to })
                     }}
                 />

@@ -37,12 +37,20 @@ export class PrismaStoreRepository implements StoreRepository {
         return store.map(this.toDomain);
     }
 
-    async findMany(filters: { name?: string; }): Promise<Store[]> {
+    async findMany(filters: { name?: string; onlyDeleted?: boolean; withDeleted?: boolean; }): Promise<Store[]> {
         const stores = await this.prisma.store.findMany({
             where: {
                 name: filters.name
                     ? normalizeName(filters.name)
                     : undefined,
+            // Filtragem com 3 opções:
+            // onlyDeleted retorna apenas items deletados
+            // withDeleted pode retornor com items deletados ou não
+            deletedAt: filters.onlyDeleted
+                ? { not: null } // retorna apenas os produtos deletados
+                : filters.withDeleted
+                    ? undefined // retorna produtos desativados/ não desativados
+                    : null, // retorna apenas os produtos não desativados
             },
             orderBy: { name: "asc" }
         })

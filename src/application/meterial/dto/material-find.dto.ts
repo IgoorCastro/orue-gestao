@@ -10,6 +10,9 @@ export type FindMaterialByNameInputDto = Readonly<{
 export type FindMaterialFilteredDto = Readonly<{
     id?: string,
     name?: string,
+    
+    onlyDeleted?: boolean,
+    withDeleted?: boolean,
 }>
 
 

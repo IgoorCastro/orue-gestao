@@ -1,16 +1,18 @@
+import { feedback } from "@/src/ui/lib/feedback";
 import { ProductStockService } from "@/src/ui/services/product-stock.service";
-import { PaginatedProductStock, ProductStock } from "@/src/ui/types/product-stock";
+import { PaginatedProductStock } from "@/src/ui/types/product-stock";
 import { ProductStockFiltersDto } from "@/src/ui/types/product-stock-filters";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
+
+const productStockService = new ProductStockService("/productStock");
 
 export function useProductStock() {
     const [productStock, setProductStock] = useState<PaginatedProductStock>({ data: [], limit: 0, page: 0, total: 0 });
     const [searchFilters, setSearchFilters] = useState<ProductStockFiltersDto>({});
     const [totalStockValue, setTotalStockValue] = useState<number>(0);
 
+    const [refreshSignal, setRefreshSignal] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
-
-    const productStockService = useMemo(() => new ProductStockService("/productStock"), []);
 
     useEffect(() => {
         const load = async () => {
@@ -30,7 +32,7 @@ export function useProductStock() {
         }
 
         load();
-    }, [searchFilters]);
+    }, [searchFilters, refreshSignal]);
 
     // função para remover filtros individuais (específica)
     const handleRemoveFilter = (key: keyof ProductStockFiltersDto, value?: any) => {
@@ -74,6 +76,40 @@ export function useProductStock() {
         }).format(value);
     }
 
+    const handleConfirmdDeactivation = (psId: string) => {
+            console.log("psId: ", psId)
+            setLoading(true);
+            feedback.loading("Desativando produto no estoque...");
+            productStockService.delete(psId)
+                .then(() => {
+                    feedback.dismiss();
+                    feedback.success("Produto em estoque desativado!");
+                    setRefreshSignal(prev => !prev);
+                })
+                .catch(err => {
+                    feedback.error(err);
+                    setLoading(false);
+                });
+        }
+    
+        const handleRestoreProductStock = (psId: string) => {
+            console.log("psId: ", psId)
+            setLoading(true);
+            feedback.loading("Reativando cor...");
+            productStockService.restore(psId)
+                .then(() => {
+                    feedback.dismiss();
+                    feedback.success("Produto em estoque reativado!");
+                    setRefreshSignal(prev => !prev);
+                })
+                .catch(err => {
+                    feedback.error(err);
+                    setLoading(false);
+                })
+        }
+
+    const isDisableProductStock = (deletedAt?: string) =>  !!deletedAt;
+
     return {
         productStock: productStock.data,
         total: productStock.total,
@@ -87,10 +123,14 @@ export function useProductStock() {
         loading,
 
         setSearchFilters,
+        setRefreshSignal,
         
         handleRemoveFilter,
         handleClearFilters,
         calcTotalProductValueInStock,
         formatNumberBRL,
+        handleConfirmdDeactivation,
+        handleRestoreProductStock,
+        isDisableProductStock,
     }
 }

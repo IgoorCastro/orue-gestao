@@ -12,6 +12,7 @@ export class RestoreProductStockByIdUseCase {
         if(!id?.trim()) throw new ValidationError("Id cannot be empty");
 
         const ps = await this.productStockRepository.findById(id);
+        console.log("ps: ", ps)
         if(!ps) throw new NotFoundError("Product stock not found");
 
         ps.restoreDeleted();

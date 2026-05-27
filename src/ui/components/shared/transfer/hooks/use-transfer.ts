@@ -7,10 +7,24 @@ import { ProductStockService } from "@/src/ui/services/product-stock.service";
 import { StockMovimentService } from "@/src/ui/services/stock-moviment.service";
 import { ProductStock } from "@/src/ui/types/product-stock";
 
+type TransferItemList = {
+    name: string
+    quantity: number
+    size?: string
+    fromStockId: string
+    toStockId: string
+    totalPrice: number
+    unitPrice: number
+    productId: string
+    productStockId: string
+}
+
+const sm = new StockMovimentService("/stockMoviment");
+const psService = new ProductStockService("/productStock");
 
 export function useTrasnfer() {
     // estados de lista
-    const [items, setItems] = useState<any[]>([]); // lista de items selecionados pelo usuario
+    const [items, setItems] = useState<TransferItemList[]>([]); // lista de items selecionados pelo usuario
     const [avaliableProductStocks, setAvaliableProductStocks] = useState<ProductStock[]>([]); // lista de produtos disponiveis no estoque selecionado
 
     // estado de seleções do usuario      
@@ -24,17 +38,15 @@ export function useTrasnfer() {
     const [fromStock, setFromStock] = useState(""); // estoque de destino
     const [productStockId, setProductStockId] = useState(""); // produto selecionado para transferencia
     const [quantity, setQuantity] = useState(1); // quantidade para transferencia
-    
+
     const [loading, setLoading] = useState<boolean>(true); // loading do hook
-    
+
     // usuário do contexto
     const user = useUser();
 
-    const psService = new ProductStockService("/productStock");
-
     // Efeito para buscar produtos da ORIGEM
-    useEffect(() => {        
-            setLoading(true);
+    useEffect(() => {
+        setLoading(true);
         if (!fromStock) {
             setAvaliableProductStocks([]);
             setLoading(false);
@@ -81,6 +93,7 @@ export function useTrasnfer() {
             unitPrice: selectedPS.product?.price || 0,
             totalPrice: (selectedPS.product?.price || 0) * quantity,
             fromStockId: fromStock,
+            productId: selectedPS.productId,
             toStockId: toStock
         };
 
@@ -94,7 +107,72 @@ export function useTrasnfer() {
         setItems(items.filter((_, i) => i !== index));
     };
 
+    // Lógica de barcode: busca produto e adiciona ou soma quantidade
+    const handleBarCodeScanned = (barcode: string, quantity: number) => {
+        // Busca o produto no array padrão por barcode
+        const product = avaliableProductStocks.map(ps => ps.product).find(p => p.barcode.toLowerCase() === barcode.toLowerCase());
+        const currentPs = avaliableProductStocks.find(ps => ps.product.id === product?.id);
+
+        if (!fromStock) {
+            feedback.error("Selecione um estoque de origem antes de adicionar produtos");
+            return;
+        }
+
+        if (!toStock) {
+            feedback.error("Selecione um estoque de destino antes de adicionar produtos");
+            return;
+        }
+
+        if (!product) {
+            feedback.error(`Produto com código ${barcode} não encontrado não encontrado no estoque`);
+            return;
+        }
+
+        if (!currentPs) {
+            feedback.error("Erro durante o processamento do atual produto.");
+            return;
+        }
+
+        // Verifica se o produto já existe no carrinho
+        const existingItemIndex = items.findIndex(
+            item => item.productId === product.id && item.fromStockId === fromStock
+        );
+
+        if (existingItemIndex >= 0) {
+            // Produto já existe > soma quantidade
+            const updatedItems = [...items];
+            updatedItems[existingItemIndex].quantity += quantity;
+            updatedItems[existingItemIndex].totalPrice =
+                updatedItems[existingItemIndex].unitPrice * updatedItems[existingItemIndex].quantity;
+            setItems(updatedItems);
+            feedback.success(`${product.name} - Quantidade aumentada`);
+            clearState();
+        } else {
+            // Produto novo > adiciona ao carrinho
+            const newItem: TransferItemList = {
+                productId: product.id,
+                name: product.name,
+                size: product.size,
+                quantity: quantity,
+                unitPrice: product.price,
+                totalPrice: product.price,
+                fromStockId: fromStock,
+                toStockId: toStock,
+                productStockId: currentPs.id,
+            };
+            setItems([...items, newItem]);
+            feedback.success(`${product.name} adicionado ao carrinho`);
+            clearState();
+        }
+    };
+
     const clearState = () => {
+        setProductStockId("");
+        setSelectedPS(null);
+        setQuantity(1);
+    };
+
+    const clearStateFull = () => {
         setItems([]);
         setFromStock("");
         setToStock("");
@@ -103,10 +181,10 @@ export function useTrasnfer() {
         setQuantity(1);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
         if (items.length === 0) return;
-        
+
         // verifica se há um usuario conectado
         if (!user) {
             feedback.error("Usuário não autenticado. Faça login para registrar movimentações.");
@@ -116,8 +194,6 @@ export function useTrasnfer() {
         const toastId = feedback.loading("Processando transferência...");
 
         try {
-            const sm = new StockMovimentService("/stockMoviment");
-
             const promises = items.map(item =>
                 sm.create({
                     productStockId: item.productStockId,
@@ -135,7 +211,7 @@ export function useTrasnfer() {
 
             feedback.dismiss(toastId);
             feedback.success(`${items.length} transferências realizadas com sucesso!`);
-            clearState();
+            clearStateFull();
         } catch (error) {
             feedback.dismiss(toastId);
             feedback.error(error);
@@ -165,5 +241,6 @@ export function useTrasnfer() {
         handleSubmit,
         handleAddItem,
         removeItem,
+        handleBarCodeScanned,
     }
 }

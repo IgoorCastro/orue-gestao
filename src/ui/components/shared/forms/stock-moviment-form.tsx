@@ -23,6 +23,10 @@ type Props = {
   initialData?: StockMoviment;
 };
 
+const psService = new ProductStockService("/productStock");
+const productService = new ProductService("/product");
+const sm = new StockMovimentService("/stockMoviment");
+
 export function StockMovimentForm({ onSuccess, initialData }: Props) {
   const [avaliableProducts, setAvaliableProducts] = useState<ProductStock[]>([]);
   const [defaultList, setDefaultList] = useState<Product[]>([]);
@@ -54,9 +58,6 @@ export function StockMovimentForm({ onSuccess, initialData }: Props) {
   } = useStockMovimentForm();
 
   useEffect(() => {
-    const psService = new ProductStockService("/productStock");
-    const productService = new ProductService("/product");
-
     // Se nao tiver estoque de origem
     // apresenta todos os produtos
     if (!fromStock) {
@@ -79,8 +80,6 @@ export function StockMovimentForm({ onSuccess, initialData }: Props) {
     feedback.loading("Processando entrada de movimentação");
 
     try {
-      const sm = new StockMovimentService("/stockMoviment");
-
       const newStockMoviment = await sm.create({
         productStockId: product, fromStockId: fromStock, toStockId: toStock, quantity, totalPrice, unitPrice, type, userId: "7b8dd7eb-f720-4d62-86ee-49711297f4f8"
       });

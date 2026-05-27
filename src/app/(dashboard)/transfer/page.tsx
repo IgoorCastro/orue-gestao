@@ -13,7 +13,7 @@ export default function TransferPage() {
   !user && <DefaultLoading />
 
   return (
-    <div className="flex flex-col gap-6 p-8">
+    <div className="flex flex-col gap-6 p-3 lg:p-8">
       <UserHeader title="Transfer Stock" description="Gerenciamento de transferencia de mercadorias e entre estoques." />
       
       <Separator className="opacity-50" />

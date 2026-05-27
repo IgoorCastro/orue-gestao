@@ -11,6 +11,7 @@ import { ProductSearchSelect } from "@/src/ui/components/shared/ui/searchable-se
 import { Save, Plus, Trash2 } from "lucide-react";
 import { useInbound } from "./hooks/use-inbound";
 import { useStockMovimentInboundDependencies } from "@/src/app/(dashboard)/stock-moviment/hooks/use-stock-moviment-inbound-dependencies";
+import { useBarCodeReader } from "@/src/ui/hooks/use-barcode-reader";
 
 export default function InboundManagerPage() {
     const {
@@ -37,7 +38,15 @@ export default function InboundManagerPage() {
         handleSubmit,
         handleAddItem,
         removeItem,
+        handleBarCodeScanned,
     } = useInbound();
+
+    // Hook do leitor de código de barras
+    const { barCode } = useBarCodeReader({
+        onBarCodeRead: handleBarCodeScanned,
+        enabled: !!toStock, // só funciona se um estoque foi selecionado
+        quantity,
+    });
 
     if (loadingDependencies) return <DefaultLoading />
 
@@ -52,8 +61,9 @@ export default function InboundManagerPage() {
             <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                 {/* Destino Fixo para esta remessa */}
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                    <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-primary">Estoque de Destino</Label>
+                    <div className="flex flex-col md:flex-row gap-2">
+                        <div className="w-full space-y-2">
+                            <Label className="text-xs font-bold uppercase tracking-wider text-primary">Estoque de Destino</Label>
                         <Select value={toStock} onValueChange={setToStock}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecione o estoque de entrada" />
@@ -66,6 +76,10 @@ export default function InboundManagerPage() {
                                 ))}
                             </SelectContent>
                         </Select>
+                        {toStock && (
+                            <p className="text-xs text-green-600 font-medium">✓ Leitor de código de barras ativo</p>
+                        )}
+                        </div>
                     </div>
                 </div>
 
@@ -99,6 +113,7 @@ export default function InboundManagerPage() {
                                 type="number"
                                 value={quantity}
                                 onChange={(e) => setQuantity(Number(e.target.value))}
+                                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                             />
                         </div>
 

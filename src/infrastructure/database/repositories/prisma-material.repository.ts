@@ -55,12 +55,21 @@ export class PrismaMaterialRepository implements MaterialRepository {
     }
 
     // retorna all caso faltar o filtro
-    async findMany(filters: { name?: string; }): Promise<Material[]> {
+    async findMany(filters: { name?: string; onlyDeleted?: boolean; withDeleted?: boolean; }): Promise<Material[]> {
         const materials = await this.prisma.material.findMany({
             where: {
                 normalizedName: filters.name
                     ? { contains: normalizeName(filters.name), mode: "insensitive" }
                     : undefined,
+
+                // Filtragem com 3 opções:
+                // onlyDeleted retorna apenas items deletados
+                // withDeleted pode retornor com items deletados ou não
+                deletedAt: filters.onlyDeleted
+                    ? { not: null } // retorna apenas os produtos deletados
+                    : filters.withDeleted
+                        ? undefined // retorna produtos desativados/ não desativados
+                        : null, // retorna apenas os produtos não desativados
             },
             orderBy: { name: "asc" }
         })

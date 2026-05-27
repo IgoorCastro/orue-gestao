@@ -3,6 +3,7 @@ import { ProductStockFiltersDto } from "@/src/ui/types/product-stock-filters"
 import { Button } from "@/src/ui/components/ui/button";
 import { GenericSelect } from "../ui/select";
 import { useProductStockFilterDependencies } from "@/src/app/(dashboard)/product-stock/hooks/use-product-stock-filter-dependencies";
+import { Tabs, TabsList, TabsTrigger } from "../../ui/tabs";
 
 type Props = {
     onApply: (filters: any) => void
@@ -36,6 +37,31 @@ export function ProductStockFilterForm({ onApply, onClose, defaultFilter }: Prop
     function handleClear() {
         setFilters({})
     }
+
+    // definir o valor atual para a UI baseado nos dois campos do DTO
+    // dependendo do valor atual da UI, o filtro executa uma ação
+    const getUIValue = () => {
+        if (filters.onlyDeleted) return "only";
+        if (filters.withDeleted) return "all";
+        return "none";
+    };
+
+    // a função que traduz a escolha da UI para o DTO
+    const handleStatusChange = (value: string) => {
+        if (value === "only") {
+            // retorna 'somente deletados'
+            update("onlyDeleted", true);
+            update("withDeleted", undefined); // ou true, dependendo de como o seu back trata
+        } else if (value === "all") {
+            // retorna 'com deletados' (ativos + deletados)
+            update("onlyDeleted", undefined);
+            update("withDeleted", true);
+        } else {
+            // default: 'sem deletados'
+            update("onlyDeleted", undefined);
+            update("withDeleted", undefined);
+        }
+    };
 
     if (loading) return <p>Carregando...</p>;
 
@@ -73,6 +99,28 @@ export function ProductStockFilterForm({ onApply, onClose, defaultFilter }: Prop
                         update("productId", value);
                     }}
                 />
+            </div>
+
+            <div className="flex flex-col">
+                <p className="text-xs pl-1 pb-1 font-medium text-muted-foreground">Visualização</p>
+                <Tabs
+                    defaultValue="none"
+                    value={getUIValue()}
+                    onValueChange={handleStatusChange}
+                    className="w-full"
+                >
+                    <TabsList className="grid w-full grid-cols-3 h-9">
+                        <TabsTrigger value="none" className="text-[11px]">
+                            Ativos
+                        </TabsTrigger>
+                        <TabsTrigger value="all" className="text-[11px]">
+                            Todos
+                        </TabsTrigger>
+                        <TabsTrigger value="only" className="text-[11px]">
+                            Desativados
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </div>
 
             <div className="flex justify-between mt-4">

@@ -78,12 +78,18 @@ export async function GET(req: NextRequest) {
 
         const name = searchParams.get("name") ?? undefined;
 
+        // filtragem com ou sem items deletados
+        const onlyDeleted = searchParams.get("onlyDeleted") ?? undefined;
+        const withDeleted = searchParams.get("withDeleted") ?? undefined;
+
         const colorRepository = new PrismaColorRepository(prisma);
         const findManyUseCase = new FindColorsUseCase(colorRepository);
 
         // useCase findMany executando
         const users = await findManyUseCase.execute({
             name,
+            withDeleted: !!withDeleted,
+            onlyDeleted: !!onlyDeleted,
         });
 
         return NextResponse.json(users, { status: 200 });

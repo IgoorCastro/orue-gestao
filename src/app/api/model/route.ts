@@ -78,6 +78,10 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
 
         const name = searchParams.get("name") ?? undefined;
+        
+        // filtragem com ou sem items deletados
+        const onlyDeleted = searchParams.get("onlyDeleted") ?? undefined;
+        const withDeleted = searchParams.get("withDeleted") ?? undefined;
 
         const modelRepository = new PrismaModelRepository(prisma);
         const findModelsUseCase = new FindModelsUseCase(modelRepository);
@@ -85,6 +89,8 @@ export async function GET(req: NextRequest) {
         // useCase findMany executando
         const colors = await findModelsUseCase.execute({
             name,
+            withDeleted: !!withDeleted,
+            onlyDeleted: !!onlyDeleted,
         });
 
         return NextResponse.json(colors, { status: 200 });

@@ -3,18 +3,17 @@
 import { feedback } from "@/src/ui/lib/feedback";
 import { ColorService } from "@/src/ui/services/color.service";
 import { Color } from "@/src/ui/types/color";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
+
+const colorService = new ColorService("/color");
 
 export function useColor() {
     const [colors, setColors] = useState<Color[]>([]);
     const [refreshSignal, setRefreshSignal] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
 
-
-    const colorService = useMemo(() => new ColorService("/color"), []);
-
     useEffect(() => {
-        colorService.findAll()
+        colorService.findAll({ withDeleted: true })
             .then((res) => {
                 setColors(res);
                 setLoading(false);

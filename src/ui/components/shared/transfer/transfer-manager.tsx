@@ -15,6 +15,7 @@ import { useTrasnfer } from "./hooks/use-transfer";
 import DefaultLoading from "@/src/ui/components/shared/ui/loading-default";
 import { ProductSearchSelect } from "@/src/ui/components/shared/ui/searchable-select";
 import { useStockMovimentDependencies } from "@/src/app/(dashboard)/stock-moviment/hooks/use-stock-moviment-dependencies";
+import { useBarCodeReader } from "@/src/ui/hooks/use-barcode-reader";
 
 export default function TransferManagePage() {
     // Dependências de estoques (Origem e Destino)
@@ -46,7 +47,14 @@ export default function TransferManagePage() {
         handleSubmit,
         handleAddItem,
         removeItem,
+        handleBarCodeScanned,
     } = useTrasnfer();
+
+    const { barCode } = useBarCodeReader({
+        onBarCodeRead: handleBarCodeScanned,
+        enabled: !!fromStock, // só funciona se um estoque foi selecionado
+        quantity,
+    });
 
     if (loadingDependencies) return <DefaultLoading />
 
@@ -131,6 +139,7 @@ export default function TransferManagePage() {
                                 value={quantity}
                                 onChange={(e) => setQuantity(Number(e.target.value))}
                                 min={1}
+                                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                             />
                         </div>
 

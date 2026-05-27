@@ -47,13 +47,13 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
-  const selectedStock = useMemo(
-    () => stocks.find((stock) => stock.id === selectedStockId),
-    [selectedStockId, stocks]
-  );
-
-
   const filteredTitle = selectedStockId ? "Estoque selecionado" : "Geral de todos os estoques";
+
+  // exemplo para filtra mensal em TOP PERFORMANCE
+  // filtro para últimos 30 dias
+  const toDate = new Date();
+  const fromDate = new Date();
+  fromDate.setDate(fromDate.getDate() - 30);
 
   useEffect(() => {
     async function loadBaseData() {
@@ -65,7 +65,7 @@ export default function AdminDashboard() {
           stockService.findAll(),
           storeService.findAll(),
           productService.findAll({ page: 1, limit: 1 }),
-          stockMovimentService.findAll({ limit: 50, page: 1, orderBy: "createdAt:desc" }),
+          stockMovimentService.findAll({ limit: 50, page: 1, orderBy: "createdAt:desc", fromDate, toDate }),
           productStockService.findAll({ page: 1, limit: 1 }),
         ]);
 
@@ -358,7 +358,7 @@ export default function AdminDashboard() {
           {/* Performance / Top Moving */}
           <Card className="border-none shadow-sm bg-card/50">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Top Performance</CardTitle>
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Top Performance (30 dias)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {topProducts.map((product) => (

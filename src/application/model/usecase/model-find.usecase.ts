@@ -5,14 +5,17 @@ import { NotFoundError } from "@/src/domain/errors/not-found.error";
 type Input = {
     id?: string;
     name?: string;
+    
+    onlyDeleted?: boolean,
+    withDeleted?: boolean,
 };
 
 export class FindModelsUseCase {
     constructor(private readonly modelRepository: ModelRepository) { }
-    async execute({ id, name }: Input): Promise<FindModelOutputDto | FindModelOutputDto[]> {
+    async execute(filters: Input): Promise<FindModelOutputDto | FindModelOutputDto[]> {
         // caso o find for por ID
-        if (id) {
-            const model = await this.modelRepository.findById(id);
+        if (filters.id) {
+            const model = await this.modelRepository.findById(filters.id);
             if (!model) throw new NotFoundError("Model not found");
             
             return {
@@ -25,7 +28,7 @@ export class FindModelsUseCase {
             }
         }
 
-        const model = await this.modelRepository.findMany({ name: name });
+        const model = await this.modelRepository.findMany({ ...filters  });
 
         return model.map(m => ({
             id: m.id,

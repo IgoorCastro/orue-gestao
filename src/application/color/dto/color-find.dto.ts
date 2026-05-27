@@ -8,6 +8,9 @@ export type FindColorByIdInputDto = Readonly<{
 
 export type FindColorFilteredDto = Readonly<{
     name?: string,
+    
+    onlyDeleted?: boolean,
+    withDeleted?: boolean,
 }>
 
 export type FindColorOutputDto = Readonly<{

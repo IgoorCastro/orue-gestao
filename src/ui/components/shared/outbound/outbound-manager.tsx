@@ -14,6 +14,7 @@ import { Plus, Trash2, ArrowUpRight } from "lucide-react";
 // Services, Types e Hooks
 import { useOutbound } from "./hooks/use-outbound";
 import { useStockMovimentDependencies } from "@/src/app/(dashboard)/stock-moviment/hooks/use-stock-moviment-dependencies";
+import { useBarCodeReader } from "@/src/ui/hooks/use-barcode-reader";
 
 export default function OutbounManagerPage() {
 
@@ -43,8 +44,14 @@ export default function OutbounManagerPage() {
         handleSubmit,
         handleAddItem,
         removeItem,
+        handleBarCodeScanned,
     } = useOutbound();
 
+    const { barCode } = useBarCodeReader({
+            onBarCodeRead: handleBarCodeScanned,
+            enabled: !!fromStock, // só funciona se um estoque foi selecionado
+            quantity,
+        });
 
     if (loadingDependencies) return <DefaultLoading />
 
@@ -58,27 +65,30 @@ export default function OutbounManagerPage() {
             </div>
             <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                 {/* Origem da Saída */}
-                <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-destructive">Estoque de Origem (Saída)</Label>
-                        <Select value={fromStock} onValueChange={(v) => {
-                            setFromStock(v);
-                            setItems([]); // Limpa o carrinho se mudar o estoque de origem para evitar conflito
-                        }}>
-                            <SelectTrigger className="border-destructive/20">
-                                <SelectValue placeholder="Selecione de onde o produto vai sair" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {avaliableStocks.map((value) => (
-                                    <SelectItem key={value.id} value={value.id}>
-                                        {value.store?.name ? `${value.store.name.toUpperCase()} - ` : ""}
-                                        {value.name && value.type !== "MAIN" ? value.name : "Matriz"}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                <div className="flex flex-col md:flex-row gap-2 items-center">
+                        <div className="w-full space-y-2">
+                            <Label className="text-xs font-bold uppercase tracking-wider text-destructive">Estoque de Origem (Saída)</Label>
+                            <Select value={fromStock} onValueChange={(v) => {
+                                setFromStock(v);
+                                setItems([]); // Limpa o carrinho se mudar o estoque de origem para evitar conflito
+                            }}>
+                                <SelectTrigger className="border-destructive/20">
+                                    <SelectValue placeholder="Selecione de onde o produto vai sair" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {avaliableStocks.map((value) => (
+                                        <SelectItem key={value.id} value={value.id}>
+                                            {value.store?.name ? `${value.store.name.toUpperCase()} - ` : ""}
+                                            {value.name && value.type !== "MAIN" ? value.name : "Matriz"}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {fromStock && (
+                                <p className="text-xs text-green-600 font-medium">✓ Leitor de código de barras ativo</p>
+                            )}
+                        </div>
                     </div>
-                </div>
 
                 {/* Inputs do Produto filtrados pelo estoque */}
                 <div className="p-4 bg-muted/20 rounded-lg border border-dashed border-destructive/30 space-y-4">
@@ -112,6 +122,7 @@ export default function OutbounManagerPage() {
                                 value={quantity}
                                 onChange={(e) => setQuantity(Number(e.target.value))}
                                 min={1}
+                                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                             />
                         </div>
 

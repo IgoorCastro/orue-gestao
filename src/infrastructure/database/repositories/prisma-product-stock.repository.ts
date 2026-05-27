@@ -56,7 +56,7 @@ export class PrismaProductStockRepository implements ProductStockRepository {
 
     async findById(id: string): Promise<ProductStock | null> {
         const productStock = await this.prisma.productStock.findFirst({
-            where: { id, deletedAt: null },
+            where: { id },
         })
 
         if (!productStock) return null;
@@ -116,6 +116,7 @@ export class PrismaProductStockRepository implements ProductStockRepository {
     // find com filtro
     // retorna uma lista de produtos em estoque e pode ser filtrada
     async findMany(filters: ProductStockFilters) {
+        console.log("filters: ", filters)
         const where: Prisma.ProductStockWhereInput = {
             productId: filters.productId,
             stockId: filters.stockId,
@@ -124,7 +125,15 @@ export class PrismaProductStockRepository implements ProductStockRepository {
                     contains: filters.productName,
                     mode: 'insensitive',
                 }
-            }
+            },
+            // Filtragem com 3 opções:
+            // onlyDeleted retorna apenas items deletados
+            // withDeleted pode retornor com items deletados ou não
+            deletedAt: filters.onlyDeleted
+                ? { not: null } // retorna apenas os produtos deletados
+                : filters.withDeleted
+                    ? undefined // retorna produtos desativados/ não desativados
+                    : null, // retorna apenas os produtos não desativados ..:: PADRÃO ::..
         }
 
         // Configuração de paginação

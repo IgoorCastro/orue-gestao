@@ -5,4 +5,7 @@ export type ProductStockFiltersDto = {
     page?: number;
     limit?: number;
     orderBy?: string;
+
+    onlyDeleted?: boolean;
+    withDeleted?: boolean;
 }
