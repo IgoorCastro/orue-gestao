@@ -5,18 +5,17 @@ import { BaseService } from "./base.service";
 
 export const productComponentService = new BaseService<ProductComponent>("/productComponent");
 
-export class ProductComponentService extends BaseService<ProductComponent> {
-  
+export class ProductComponentService extends BaseService<ProductComponent> {  
   async create(data: CreateProductComponentDto) {
     const resp = await api.post(this.endpoint, data);
     return resp.data;
   }
 
-  update(id: string, data: Partial<CreateProductComponentDto>) {
+  async update(id: string, data: Partial<CreateProductComponentDto>) {
     return api.put(`${this.endpoint}/${id}`, data);
   }
 
-  delete(id: string) {
+  async delete(id: string) {
     return api.delete(`${this.endpoint}/${id}`);
   }
 }

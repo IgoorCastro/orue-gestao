@@ -15,7 +15,7 @@ export function ProductDetailsForm({ product }: ProductDetailsFormProps) {
   const {
     productComponents: avaliableCompositions,
     loading
-  } = useProductDetailsDependencies(product.type === "PRODUCT" ? null : { parentId: product.id });
+  } = useProductDetailsDependencies(product.type === "PRODUCT" ? undefined : { parentId: product.id });
 
   // Helper para campos de exibição
   const InfoField = ({ label, value }: { label: string; value?: string | number | null }) => (

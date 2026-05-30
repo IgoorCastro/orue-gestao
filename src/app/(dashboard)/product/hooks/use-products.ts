@@ -93,6 +93,22 @@ export function useProducts() {
             })
     }
 
+    // função para verificar se um produto está desabilitado
+    // caso deletedAt esteja presente não seja null ou undefined
+    // esse produto está desativado!
+    const isDisabledProduct = (deletedAt?: string): boolean => {
+        return !!deletedAt;
+    }
+
+    const mapColorsName = (product: Product): string => {
+        const colorNames = product.productColor
+            ?.map(pc => pc.color?.name) // entra em ProductColor, acessa Color e pega o Name
+            .filter(name => !!name)     // remove possíveis valores nulos ou indefinidos
+            .join(", ");                // une tudo com vírgula e espaço
+
+        return colorNames;
+    }
+
     return {
         products: products?.data,
         total: products?.total,
@@ -106,9 +122,12 @@ export function useProducts() {
 
         setRefreshSignal,
         setSearchFilters,
+
         handleRemoveFilter,
         handleClearFilters,
         handleConfirmdDeactivation,
         handleRestoreProduct,
+        mapColorsName,
+        isDisabledProduct,
     }
 }

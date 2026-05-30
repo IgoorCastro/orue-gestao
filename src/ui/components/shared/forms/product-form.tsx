@@ -2,7 +2,7 @@
 
 import { Product } from "@/src/ui/types/product";
 import { MultiSelect } from "@/src/app/(dashboard)/product/components/multi-select";
-import { ProductSize, ProductType, useProductForm } from "@/src/app/(dashboard)/product/hooks/use-product-form";
+import { ProductSize, SelectedProduct, useProductForm } from "@/src/app/(dashboard)/product/hooks/use-product-form";
 import { ProductService } from "@/src/ui/services/product.service";
 import { mapProductType } from "@/src/ui/utils/map-product-type";
 
@@ -26,14 +26,12 @@ import { ConfirmModal } from "../modals/confirm-modal";
 import DefaultLoading from "../ui/loading-default";
 import { useProductDependencies } from "@/src/app/(dashboard)/product/hooks/use-product-dependencies";
 import { useMemo } from "react";
+import { ProductType } from "@/src/ui/enum/product-type";
 
 type Props = {
   onSuccess: (product: Product) => void;
   initialData?: Product;
 };
-
-const productService = new ProductService("/product");
-const productComponenteService = new ProductComponentService("/productComponent");
 
 export function ProductForm({ onSuccess, initialData }: Props) {
   const {
@@ -52,70 +50,9 @@ export function ProductForm({ onSuccess, initialData }: Props) {
     setName, setPrice, setType,
     setSize, setMlProductId, setModel,
     setColors, setMaterials, setSelectedComponentsProducts,
-  } = useProductForm(initialData);
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
-    e.preventDefault();
-    feedback.loading("Processando entrada produto...");
-    try {
-      const product = isUpdate() ? await updateProduct(productService) : await createProduct(productService, productComponenteService);
-      feedback.dismiss(); // Remove o loading
-      feedback.success(`Entrada de produto realizada com sucesso!`);
-      onSuccess(product);
-    } catch (error) {
-      feedback.dismiss();
-      feedback.error(error); // O utilitário já trata a mensagem de erro da API
-    }
-  };
-
-  // função para criar um novo produto
-  const createProduct = async (productService: ProductService, pcService: ProductComponentService) => {
-    try {
-      // primeiro criar o produto
-      // NECESSARIO A ID DO PRODUTO PARA GERAR A COMPOSIÇÃO!
-      const newProduct = await productService.create({
-        name, price, type, size,
-        colorIds: colors.map(c => c.id),
-        materialIds: materials.map(m => m.id),
-        modelId: model,
-        mlProductId
-      });
-
-      // caso for KIT/ PACKAGE, preparar as promises da composição
-      if (type !== ProductType.PRODUCT) {
-        const compositionPromises = selectedComponentsProducts.map((item) =>
-          pcService.create({
-            componentProductId: item.id,
-            quantity: item.quantity,
-            parentProductId: newProduct.id,
-          })
-        );
-
-        // executando todas as promises ao mesmo tempo
-        await Promise.all(compositionPromises);
-
-        return newProduct;
-      }
-    } catch (error) {
-      handleApiError(error);
-    }
-  }
-
-  // função para editar um produto
-  const updateProduct = async (service: ProductService) => {
-    if (initialData) {
-      return await service.update(initialData.id, {
-        name, price, type, size, colorIds: colors.map(c => c.id),
-        materialIds: materials.map(m => m.id), modelId: model,
-        mlProductId, sku: initialData.sku, updatedAt: initialData.updatedAt,
-      });
-    }
-  }
-
-  // função para saber se o form é para update ou create
-  const isUpdate = () => {
-    return !!initialData;
-  }
+    handleSubmit, isUpdate,
+  } = useProductForm({ initialData, onSuccess });
 
   if (loading) return <DefaultLoading />;
 

@@ -2,11 +2,11 @@ import { ProductComponentService } from "@/src/ui/services/product-component.ser
 import { ProductComponent } from "@/src/ui/types/product-component";
 import { useEffect, useMemo, useState } from "react";
 
-export function useProductDetailsDependencies(filter?: any) {
+const pcService = new ProductComponentService("/productComponent");
+
+export function useProductDetailsDependencies(filter?: { parentId: string }) {
     const [productComponents, setProductComponents] = useState<ProductComponent[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-
-    const pcService = useMemo(() => new ProductComponentService("/productComponent"), []);
 
     useEffect(() => {
         // só faz a request se tiver filtro

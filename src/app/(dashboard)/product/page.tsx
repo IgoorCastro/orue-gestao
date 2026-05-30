@@ -32,10 +32,13 @@ export default function ProductsPage() {
 
     setRefreshSignal,
     setSearchFilters,
+
     handleRemoveFilter,
     handleClearFilters,
     handleConfirmdDeactivation,
     handleRestoreProduct,
+    mapColorsName,
+    isDisabledProduct,
   } = useProducts();
 
   // hook para controle de estados da pagina
@@ -49,7 +52,10 @@ export default function ProductsPage() {
     setOpenCrudModal,
     setOpenFilterModal,
     setOpenItemModal,
-    setSelectedProduct,
+
+    openItemDetails,
+    openEditModal,
+    openCreateProduct,
   } = useProductPageState();
 
   // hooks das dependencias utilizadas na pagina
@@ -58,38 +64,6 @@ export default function ProductsPage() {
     materials,
     loading: loadingDeps,
   } = useProductFilterDependencies();
-
-  const mapColorsName = (product: Product): string => {
-    const colorNames = product.productColor
-      ?.map(pc => pc.color?.name) // entra em ProductColor, acessa Color e pega o Name
-      .filter(name => !!name)     // remove possíveis valores nulos ou indefinidos
-      .join(", ");                // une tudo com vírgula e espaço
-
-    return colorNames;
-  }
-
-  const openItemDetails = (product: Product): void => {
-    setSelectedProduct(product);
-    setOpenItemModal(true);
-  }
-
-  const openEditModal = (product: Product): void => {
-    setSelectedProduct(product);
-    setOpenCrudModal(true);
-  }
-
-  // Limpa o estado e abre a modal
-  const openCreateProduct = () => {
-    setSelectedProduct(undefined);
-    setOpenCrudModal(true);
-  }
-
-  // função para verificar se um produto está desabilitado
-  // caso deletedAt esteja presente não seja null ou undefined
-  // esse produto está desativado!
-  const isDisabledProduct = (deletedAt?: string): boolean => {
-    return !!deletedAt;
-  }
 
   if (loadingProducts || loadingDeps) return <DefaultLoading />;
 
@@ -290,6 +264,7 @@ export default function ProductsPage() {
         onPageChange={(page) => setSearchFilters(prev => ({ ...prev, page }))}
       />
 
+      {/* Modal dos detalhes do produto */}
       <ResponsiveModal
         title="Detalhes do Produto"
         open={openItemModal}

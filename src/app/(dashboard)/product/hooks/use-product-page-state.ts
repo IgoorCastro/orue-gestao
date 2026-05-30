@@ -9,6 +9,22 @@ export function useProductPageState() {
     const [openFilterModal, setOpenFilterModal] = useState(false);
     const [openItemModal, setOpenItemModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
+    
+      const openItemDetails = (product: Product): void => {
+        setSelectedProduct(product);
+        setOpenItemModal(true);
+      }
+    
+      const openEditModal = (product: Product): void => {
+        setSelectedProduct(product);
+        setOpenCrudModal(true);
+      }
+    
+      // Limpa o estado e abre a modal
+      const openCreateProduct = () => {
+        setSelectedProduct(undefined);
+        setOpenCrudModal(true);
+      }
 
     return {
         openCrudModal,
@@ -20,5 +36,9 @@ export function useProductPageState() {
         setOpenFilterModal,
         setOpenItemModal,
         setSelectedProduct,
+
+        openItemDetails,
+        openEditModal,
+        openCreateProduct,
     };
 }
