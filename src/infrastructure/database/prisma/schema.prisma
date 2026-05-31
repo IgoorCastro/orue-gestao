@@ -192,11 +192,26 @@ enum UserRole {
 }
 
 enum ProductSize {
+  PP
   P
   M
   G
   GG
   XG
+  G1
+  G2
+  G3
+  G4
+  G5
+  L
+  XL
+  XXL
+  XXXL
+  XXXXL
+  XXXXXL
+  XXXXXXL
+  XXXXXXXL
+  XXXXXXXXL
 }
 
 enum ProductType {
