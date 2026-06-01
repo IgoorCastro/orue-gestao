@@ -8,7 +8,7 @@ export class ProductStockService extends BaseServicePaginated<ProductStock> {
     const { data } = await api.get(this.endpoint, {
       params: { ...input },
     })
-
+    console.log("DATA: ", data)
     return data;
   }
 

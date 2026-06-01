@@ -15,7 +15,7 @@ export function ModeToggle() {
     >
       <Sun className="h-[1.2rem] w-[1.2rem] text-foreground hover:text-primary transition-all dark:-rotate-90 dark:scale-0" />
 
-<Moon className="absolute h-[1.2rem] w-[1.2rem] text-foreground hover:text-primary transition-all rotate-90 scale-0 dark:rotate-0 dark:scale-100" />
+      <Moon className="absolute h-[1.2rem] w-[1.2rem] text-foreground hover:text-primary transition-all rotate-90 scale-0 dark:rotate-0 dark:scale-100" />
     </Button>
   );
 }

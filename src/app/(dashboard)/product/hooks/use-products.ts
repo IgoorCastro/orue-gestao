@@ -8,6 +8,8 @@ import { PaginatedProduct, Product } from "@/src/ui/types/product";
 import { ProductFiltersDto } from "@/src/ui/types/product-filters";
 import { useEffect, useMemo, useState } from "react";
 
+const productService = new ProductService("/product");
+
 export function useProducts() {
     // inserir os filtros padrões aqui!
     // para retornar produtos com withDeleted ou onlyDeleted
@@ -24,15 +26,15 @@ export function useProducts() {
     const [loading, setLoading] = useState<boolean>(true); // estado de loading
     const [refreshSignal, setRefreshSignal] = useState<boolean>(false); // estado de controle para atualização da pagina
 
-    const productService = useMemo(() => new ProductService("/product"), []);
-
     useEffect(() => {
+        setLoading(true);
         productService.findAll(searchFilters)
             .then((res) => {
                 setProducts(res);
                 setLoading(false);
             })
-            .catch(console.error);
+            .catch(feedback.error)
+            .finally(() => setLoading(false));
     }, [searchFilters, refreshSignal]);
 
     // função para remover filtros individuais (específica)
@@ -42,10 +44,9 @@ export function useProducts() {
 
             if (Array.isArray(next[key])) {
                 // Remove apenas o item do array
-                // next[key] = (next[key] as string[]).filter((v) => v !== value);
                 (next[key] as string[]) = (next[key] as string[]).filter((v) => v !== value);
+
                 // Se o array ficou vazio, removemos a chave para manter o objeto limpo
-                // if (next[key].length === 0) delete next[key];                
                 if ((next[key] as string[]).length === 0) delete next[key];
             } else {
                 // Remove a chave inteira (name, size, minPrice, etc)
@@ -56,7 +57,7 @@ export function useProducts() {
         });
     };
 
-    // função para resetar tudo (genérica)
+    // função para resetar o filtro
     const handleClearFilters = () => {
         setSearchFilters({}); // Reseta para um objeto vazio
     };
@@ -71,10 +72,8 @@ export function useProducts() {
                 feedback.success("Produto desativado!");
                 setRefreshSignal(prev => !prev);
             })
-            .catch(error => {
-                feedback.error(error);
-                setLoading(false);
-            })
+            .catch(feedback.error)
+            .finally(() => setLoading(false))
     }
 
     // função para resturar um produto desativado
@@ -91,6 +90,7 @@ export function useProducts() {
                 feedback.error(error);
                 setLoading(false);
             })
+            .finally(() => setLoading(false))
     }
 
     // função para verificar se um produto está desabilitado
@@ -100,6 +100,8 @@ export function useProducts() {
         return !!deletedAt;
     }
 
+    // função para mapear as cores de um produto
+    // para exibição no layout
     const mapColorsName = (product: Product): string => {
         const colorNames = product.productColor
             ?.map(pc => pc.color?.name) // entra em ProductColor, acessa Color e pega o Name

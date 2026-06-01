@@ -13,119 +13,26 @@ import { capitalizeFirstLetter } from "@/src/ui/utils/capitalize-first-letter";
 import { AlertTriangle, ArrowRightLeft, LayoutDashboard, Package, StoreIcon, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/ui/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/ui/components/ui/table";
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("pt-BR").format(value);
-}
+import { StockMovimentType } from "@/src/ui/enum/stock-moviment-type";
+import { useManagerDashboard } from "./hooks/use-manager-dashboard";
+import { formatNumber } from "@/src/ui/utils/format-number";
 
 export default function ManagerDashboard() {
-  const [stocks, setStocks] = useState<Stock[]>([]);
-  const [selectedStockId, setSelectedStockId] = useState<string>("");
-  const [totalProducts, setTotalProducts] = useState<number>(0);
-  const [totalStocks, setTotalStocks] = useState<number>(0);
-  const [totalProductStocks, setTotalProductStocks] = useState<number>(0);
-  const [recentMovements, setRecentMovements] = useState<StockMoviment[]>([]);
-  const [lowStockItems, setLowStockItems] = useState<ProductStock[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const {
+    stocks,
+    selectedStockId,
+    totalProducts,
+    totalStocks,
+    totalProductStocks,
+    recentMovements,
+    lowStockItems,
+    loading,
+    error,
 
-  const stockService = useMemo(() => new StockService("/stock"), []);
-  const productService = useMemo(() => new ProductService("/product"), []);
-  const productStockService = useMemo(() => new ProductStockService("/productStock"), []);
-  const stockMovimentService = useMemo(() => new BaseServicePaginated<StockMoviment>("/stockMoviment"), []);
+    setSelectedStockId,
+  } = useManagerDashboard();
 
-  useEffect(() => {
-    async function loadBaseData() {
-      setLoading(true);
-      setError("");
-
-      try {
-        const [stockList, productPage, recentMovimentList, productStockPage] = await Promise.all([
-          stockService.findAll(),
-          productService.findAll({ page: 1, limit: 1 }),
-          stockMovimentService.findAll({ limit: 50, page: 1, orderBy: "createdAt:desc" }),
-          productStockService.findAll({ page: 1, limit: 1 }),
-        ]);
-
-        setStocks(stockList);
-        setTotalProducts(productPage.total);
-        setTotalStocks(stockList.length);
-        setRecentMovements(recentMovimentList.data ?? []);
-        setTotalProductStocks(productStockPage.total);
-      } catch (err) {
-        console.error(err);
-        setError("Erro ao carregar os dados do dashboard. Tente novamente mais tarde.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadBaseData();
-  }, []);
-
-  useEffect(() => {
-    async function loadSelectedStockData() {
-      setLoading(true);
-      setError("");
-
-      try {
-        // Sempre busca esses 3 primeiros
-        const basePromises = [
-          productStockService.findAll({ stockId: selectedStockId || undefined, page: 1, limit: 1 }),
-          productStockService.findAll({ stockId: selectedStockId || undefined, page: 1, limit: 5, orderBy: "quantity:asc" }),
-        ];
-
-        let additionalPromises: any[] = [];
-
-        if (selectedStockId) {
-          // Com filtro: busca apenas movimentações do estoque específico
-          additionalPromises = [
-            stockMovimentService.findAll({
-              filterStock: selectedStockId,
-              limit: 10,
-              page: 1,
-              orderBy: "createdAt:desc"
-            })
-          ];
-        } else {
-          // Sem filtro: busca mais movimentações E dados atuais de estoque
-          additionalPromises = [
-            stockMovimentService.findAll({ limit: 100, page: 1, orderBy: "createdAt:desc" }),
-            productStockService.findAll({ page: 1, limit: 1000 }) // ← Busca dados atuais de estoque
-          ];
-        }
-
-        const [stockSummary, lowStockResponse, ...remaining] = await Promise.all([
-          ...basePromises,
-          ...additionalPromises
-        ]);
-
-        // Processa os resultados base (sempre presentes)
-        setTotalProductStocks((stockSummary as any).total);
-        setLowStockItems((lowStockResponse as any).data ?? []);
-
-        if (selectedStockId) {
-          // Com filtro: remaining[0] são as movimentações
-          const stockMovements = remaining[0] as any;
-          setRecentMovements(stockMovements.data ?? []);
-        } else {
-          // Sem filtro: remaining[0] = movimentações, remaining[1] = dados atuais de estoque
-          const stockMovements = remaining[0] as any;
-          const currentStockDataResponse = remaining[1] as any;
-          setRecentMovements(stockMovements.data ?? []);
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Erro ao carregar dados do estoque selecionado.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadSelectedStockData();
-  }, [selectedStockId]);
-
-  if (loading ) {
+  if (loading) {
     return (
       <main className="flex-1 p-6">
         <div className="rounded-2xl p-8 bg-card shadow-sm border border-slate-200 dark:border-slate-800">
@@ -185,7 +92,7 @@ export default function ManagerDashboard() {
 
       {/* Grid Principal: Movimentações e Sidebars */}
       <section className="w-full grid gap-6 grid-cols-1 xl:grid-cols-3">
-        
+
         {/* Tabela de Movimentações Recentes */}
         <div className="w-full xl:col-span-2 space-y-4">
           <div className="flex items-center justify-between px-2">
@@ -195,7 +102,7 @@ export default function ManagerDashboard() {
             </h2>
             <Link href="/stock-moviment" className="text-xs font-bold text-primary hover:underline uppercase">Ver tudo</Link>
           </div>
-          
+
           <div className="w-[98%] md:min-w-[50%] md:w-auto flex rounded-xl border bg-card shadow-sm overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/50">
@@ -211,9 +118,8 @@ export default function ManagerDashboard() {
                 {recentMovements.slice(0, 8).map((movement) => (
                   <TableRow key={movement.id} className="hover:bg-muted/30 transition-colors border-b last:border-0">
                     <TableCell className="pl-6 py-4">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                        movement.type === 'IN' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                      }`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${movement.type === StockMovimentType.TRANSFER ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                        }`}>
                         {movement.type}
                       </span>
                     </TableCell>

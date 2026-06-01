@@ -2,10 +2,6 @@
 
 import { useUser } from "@/src/ui/contexts/user-context";
 import DefaultLoading from "@/src/ui/components/shared/ui/loading-default";
-import UserHeader from "@/src/ui/components/shared/ui/header";
-import InboundAdminPage from "@/src/ui/components/shared/inbound/inbound-admin";
-import InboundManagerPage from "@/src/ui/components/shared/inbound/inbound-manager";
-import { Separator } from "@/src/ui/components/ui/separator";
 import AdminStockMovimentsPage from "@/src/ui/components/shared/stock-moviment/admin-stock-moviment";
 import ManagerStockMovimentsPage from "@/src/ui/components/shared/stock-moviment/manager-stock-moviment";
 

@@ -6,13 +6,14 @@ import { Input } from "@/src/ui/components/ui/input"
 import { ProductFiltersDto } from "@/src/ui/types/product-filters"
 import { GenericSelect } from "../ui/select"
 import { ProductType } from "@/src/ui/enum/product-type"
-import { mapProductType } from "@/src/ui/utils/map-product-type"
 import { ProductSize } from "@/src/ui/enum/product-size"
 import { Color } from "@/src/ui/types/color"
 import { Material } from "@/src/ui/types/material"
 import { Tabs, TabsList, TabsTrigger } from "@/src/ui/components/ui/tabs"
 import { MultiSelect } from "@/src/app/(dashboard)/product/components/multi-select"
 import { useProductFilterDependencies } from "@/src/app/(dashboard)/product/hooks/use-product-filter-dependencies"
+import { PRODUCT_TYPE_LABELS } from "@/src/ui/constants/labels/product-type-labels"
+import { PRODUCT_SIZE_LABELS } from "@/src/ui/constants/labels/product-size-labels"
 
 type Props = {
     onApply: (filters: any) => void
@@ -148,8 +149,8 @@ export function ProductFilterForm({ onApply, onClose, defaultFilter = {} }: Prop
 
                         placeholder="Selecione.."
 
-                        items={Object.keys(ProductType).map(pt => ({
-                            label: mapProductType(pt),
+                        items={(Object.values(ProductType)).map(pt => ({
+                            label: PRODUCT_TYPE_LABELS[pt],
                             value: pt,
                         }))}
 
@@ -164,8 +165,8 @@ export function ProductFilterForm({ onApply, onClose, defaultFilter = {} }: Prop
                         // Passa o valor atual do estado. Se for limpo, vira "" ou undefined
                         value={filters.size}
 
-                        items={Object.keys(ProductSize).map(ps => ({
-                            label: ps,
+                        items={Object.values(ProductSize).map(ps => ({
+                            label: PRODUCT_SIZE_LABELS[ps],
                             value: ps,
                         }))}
 

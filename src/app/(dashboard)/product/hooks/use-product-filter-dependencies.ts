@@ -1,36 +1,29 @@
+import { feedback } from "@/src/ui/lib/feedback";
 import { ColorService } from "@/src/ui/services/color.service";
 import { MaterialService } from "@/src/ui/services/material.service";
 import { Color } from "@/src/ui/types/color";
 import { Material } from "@/src/ui/types/material";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+
+const colorService = new ColorService("/color");
+const materialService = new MaterialService("/material");
 
 export function useProductFilterDependencies() {
     const [colors, setColors] = useState<Color[]>([]);
     const [materials, setMaterials] = useState<Material[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
-    const colorService = useMemo(() =>  new ColorService("/color"), []);
-    const materialService = useMemo(() =>  new MaterialService("/material"), []);
-
     useEffect(() => {
-        async function load() {
-            try {
-                // SERVICES
-                const [colors, materials] = await Promise.all([
-                    colorService.findAll(),
-                    materialService.findAll(),
-                ])
-
+        Promise.all([
+            colorService.findAll(),
+            materialService.findAll(),
+        ])
+            .then(([colors, materials]) => {
                 setColors(colors);
                 setMaterials(materials);
-            } catch (error) {
-                console.error("Erro ao carregar dependências", error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        load();
+            })
+            .catch(feedback.error)
+            .finally(() => setLoading(false));
     }, []);
 
     return {

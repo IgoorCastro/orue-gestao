@@ -1,5 +1,6 @@
 // componente de função para gerar etiquetas de produtos
 
+import { ProductType } from '@/src/ui/enum/product-type';
 import React from 'react';
 import Barcode from 'react-barcode';
 
@@ -25,7 +26,7 @@ interface LabelData {
 
 interface LabelPrintProps {
   data: LabelData;
-  type: 'PRODUCT' | 'KIT' | "PACKAGE";
+  type: ProductType;
 }
 
 export const LabelPrint: React.FC<LabelPrintProps> = ({ data, type }) => {

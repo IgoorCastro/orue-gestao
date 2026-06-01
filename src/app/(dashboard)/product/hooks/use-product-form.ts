@@ -6,26 +6,12 @@ import { feedback } from "@/src/ui/lib/feedback";
 import { ProductService } from "@/src/ui/services/product.service";
 import { ProductComponentService } from "@/src/ui/services/product-component.service";
 import { handleApiError } from "@/src/ui/services/errors/handle-api-error";
-
-export enum ProductType {
-  PRODUCT = "PRODUCT",
-  KIT = "KIT",
-  PACKAGE = "PACKAGE",
-}
-
-export enum ProductSize {
-  P = "P",
-  M = "M",
-  G = "G",
-  GG = "GG",
-  XG = "XG",
-}
+import { ProductType } from "@/src/ui/enum/product-type";
+import { ProductSize } from "@/src/ui/enum/product-size";
 
 export type SelectedProduct = Product & { quantity: number };
 
 type useProductFromProps = {
-  // initialDataToProduct?: Product; // utilziar para tipo PRODUTOS
-  // initialDataToOthers?: Product; // utilizar para tipo KIT/ PACKAGE
   initialData?: Product;
   onSuccess: (product: Product) => void;
 }
@@ -65,7 +51,6 @@ export function useProductForm(props: useProductFromProps) {
     try {
       // pesquisa por composição do produto
       const prodComp = await productComponenteService.findAll({ parentId: product.id });
-      console.log("prodComp: ", prodComp)
       if (!prodComp) feedback.error("Composição vazia ou não encontrada")
       setSelectedComponentsProducts(prodComp.map(pc => ({
         ...pc.componentProduct,
@@ -135,6 +120,7 @@ export function useProductForm(props: useProductFromProps) {
         return newProduct;
       }
     } catch (error) {
+      feedback.error(error);
       handleApiError(error);
     }
   }

@@ -7,12 +7,13 @@ import { Separator } from "@/src/ui/components/ui/separator";
 import { Button } from "@/src/ui/components/ui/button";
 import { Save } from "lucide-react";
 import { Input } from "@/src/ui/components/ui/input";
-import { mapStockType } from "@/src/ui/utils/map-stock-type";
 import { ConfirmModal } from "../modals/confirm-modal";
 import DefaultLoading from "../ui/loading-default";
 import { useStockDependencies } from "@/src/app/(dashboard)/stock/hooks/use-stock-dependencies";
-import { StockType, useStockForm } from "@/src/app/(dashboard)/stock/hooks/use-stock-form";
+import { useStockForm } from "@/src/app/(dashboard)/stock/hooks/use-stock-form";
 import { GenericSelect } from "@/src/app/(dashboard)/product/components/select-list";
+import { StockType } from "@/src/ui/enum/stock-type";
+import { STOCK_TYPE_LABELS } from "@/src/ui/constants/labels/stock-type-labels";
 
 type Props = {
   onSuccess: () => void;
@@ -62,17 +63,17 @@ export function StockForm({ onSuccess, initialData }: Props) {
           <Label className="text-xs font-bold uppercase tracking-wider">
             Tipo de estoque
           </Label>
-          <Select 
+          <Select
             value={type}
-            onValueChange={(v) => setType(v as StockType)}  
+            onValueChange={(v) => setType(v as StockType)}
           >
-            <SelectTrigger  className="min-w-24">
+            <SelectTrigger className="min-w-24">
               <SelectValue placeholder="Selecione o tipo" />
             </SelectTrigger>
             <SelectContent>
               {Object.values(StockType).map((value) => (
                 <SelectItem key={value} value={value}>
-                  {mapStockType(value)}
+                  {STOCK_TYPE_LABELS[value]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -106,11 +107,11 @@ export function StockForm({ onSuccess, initialData }: Props) {
           formId="stock-form" // id do form para rastreio no componente
         >
           <Button type="button" className="w-full md:w-auto px-8 gap-2 bg-primary hover:bg-primary/90">
-          <Save className="h-4 w-4" />
-          Salvar
-        </Button>
+            <Save className="h-4 w-4" />
+            Salvar
+          </Button>
         </ConfirmModal>
-        
+
       </div>
     </form>
   );

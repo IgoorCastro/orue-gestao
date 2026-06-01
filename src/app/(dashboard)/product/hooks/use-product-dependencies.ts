@@ -10,6 +10,7 @@ import { Color } from "@/src/ui/types/color";
 import { Material } from "@/src/ui/types/material";
 import { PaginatedProduct } from "@/src/ui/types/product";
 import { ProductService } from "@/src/ui/services/product.service";
+import { feedback } from "@/src/ui/lib/feedback";
 
 const colorService = new ColorService("/color");
 const materialService = new MaterialService("/material");
@@ -38,8 +39,8 @@ export function useProductDependencies() {
                 setColors(colorsRes);
                 setMaterials(materialsRes);
                 setProducts(productRes);
-            } catch (error) {
-                console.error("Erro ao carregar dependências", error);
+            } catch {
+                feedback.error
             } finally {
                 setLoading(false);
             }

@@ -5,12 +5,12 @@ import { UserService } from "@/src/ui/services/user.service";
 import { User } from "@/src/ui/types/user";
 import { useEffect, useState, useMemo } from "react";
 
+const userService = new UserService("/user");
+
 export function useUser() {
     const [users, setUsers] = useState<User[]>([]);
     const [refreshSignal, setRefreshSignal] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
-
-    const userService = useMemo(() => new UserService("/user"), []);
 
     useEffect(() => {
         userService.findAll()

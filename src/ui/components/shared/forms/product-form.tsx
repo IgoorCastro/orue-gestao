@@ -2,9 +2,7 @@
 
 import { Product } from "@/src/ui/types/product";
 import { MultiSelect } from "@/src/app/(dashboard)/product/components/multi-select";
-import { ProductSize, SelectedProduct, useProductForm } from "@/src/app/(dashboard)/product/hooks/use-product-form";
-import { ProductService } from "@/src/ui/services/product.service";
-import { mapProductType } from "@/src/ui/utils/map-product-type";
+import { useProductForm } from "@/src/app/(dashboard)/product/hooks/use-product-form";
 
 // Shadcn UI
 import { Input } from "@/src/ui/components/ui/input";
@@ -18,15 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/src/ui/components/ui/select";
+
 import { MultiSelectWithQuantity } from "@/src/app/(dashboard)/product/components/multi-select-with-quantity";
-import { ProductComponentService } from "@/src/ui/services/product-component.service";
-import { handleApiError } from "@/src/ui/services/errors/handle-api-error";
-import { feedback } from "@/src/ui/lib/feedback";
 import { ConfirmModal } from "../modals/confirm-modal";
 import DefaultLoading from "../ui/loading-default";
 import { useProductDependencies } from "@/src/app/(dashboard)/product/hooks/use-product-dependencies";
-import { useMemo } from "react";
 import { ProductType } from "@/src/ui/enum/product-type";
+import { ProductSize } from "@/src/ui/enum/product-size";
+import { PRODUCT_TYPE_LABELS } from "@/src/ui/constants/labels/product-type-labels";
+import { PRODUCT_SIZE_LABELS } from "@/src/ui/constants/labels/product-size-labels";
 
 type Props = {
   onSuccess: (product: Product) => void;
@@ -98,7 +96,9 @@ export function ProductForm({ onSuccess, initialData }: Props) {
               </SelectTrigger>
               <SelectContent>
                 {Object.values(ProductSize).map((v) => (
-                  <SelectItem key={v} value={v}>{v}</SelectItem>
+                  <SelectItem key={v} value={v}>
+                    {PRODUCT_SIZE_LABELS[v]}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -115,7 +115,7 @@ export function ProductForm({ onSuccess, initialData }: Props) {
             </SelectTrigger>
             <SelectContent>
               {Object.values(ProductType).map((v) => (
-                <SelectItem key={v} value={v}>{mapProductType(v)}</SelectItem>
+                <SelectItem key={v} value={v}>{PRODUCT_TYPE_LABELS[v]}</SelectItem>
               ))}
             </SelectContent>
           </Select>

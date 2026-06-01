@@ -1,12 +1,10 @@
-type UserRole = {
-    
-}
+import { UserRole } from "../enum/user-role.enum";
 
 export type User = {
     id: string;
     name: string;
     nickname: string,
-    role: string; 
+    role: UserRole; 
 
     createdAt: string; 
     updatedAt: string;

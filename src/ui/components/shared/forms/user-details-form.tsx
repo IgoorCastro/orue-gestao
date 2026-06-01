@@ -3,14 +3,14 @@ import { Label } from "@/src/ui/components/ui/label";
 import { format } from "date-fns";
 import DefaultLoading from "../ui/loading-default";
 import { User } from "@/src/ui/types/user";
-import { mapUserType } from "@/src/ui/utils/map-user-type";
+import { USER_ROLE_LABELS } from "@/src/ui/constants/labels/user-role-labels";
 
 type UserDetailsFormProps = {
   user: User;
 };
 
 export function UserDetailsForm({ user }: UserDetailsFormProps) {
-  
+
   // Helper para campos de exibição
   const InfoField = ({ label, value }: { label: string; value?: string | number | null }) => (
     <div className="flex flex-col space-y-1">
@@ -18,7 +18,7 @@ export function UserDetailsForm({ user }: UserDetailsFormProps) {
       <div className="text-sm font-medium">{value || "---"}</div>
     </div>
   );
-  
+
   if (!user) return <DefaultLoading />
 
   return (
@@ -37,7 +37,7 @@ export function UserDetailsForm({ user }: UserDetailsFormProps) {
         <div className="col-span-2">
           <InfoField label="Nome do Usuário" value={user.name} />
         </div>
-        <InfoField label="Cargo" value={mapUserType(user.role)} />
+        <InfoField label="Cargo" value={USER_ROLE_LABELS[user.role]} />
         <InfoField label="Usuário" value={user.nickname} />
       </div>
 

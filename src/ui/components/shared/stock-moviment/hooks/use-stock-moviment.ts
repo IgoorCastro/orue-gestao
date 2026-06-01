@@ -3,17 +3,19 @@ import { PaginatedStockMoviment, StockMoviment } from "@/src/ui/types/stock-movi
 import { StockMovimentFilteredDto } from "@/src/ui/types/stock-moviment-filters";
 import { useEffect, useState, useMemo } from "react";
 
+const stockMovimentService = new BaseServicePaginated<StockMoviment>("/stockMoviment");
+
 export function useStockMoviment() {
   const [stockMoviment, setStockMoviment] = useState<PaginatedStockMoviment | null>(null);
   const [searchFilters, setSearchFilters] = useState<StockMovimentFilteredDto>({ orderBy: "createdAt:desc" });
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const stockMovimentService = useMemo(() => new BaseServicePaginated<StockMoviment>("/stockMoviment"), []);
   useEffect(() => {
+    setLoading(true);
     stockMovimentService.findAll(searchFilters)
-      .then((res) => {
-        setStockMoviment(res);
-      })
-      .catch(console.error);
+      .then(setStockMoviment)
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [stockMovimentService, searchFilters]);
 
   const handleRemoveFilter = (key: keyof StockMovimentFilteredDto, value?: any) => {
@@ -50,6 +52,7 @@ export function useStockMoviment() {
       ? Math.ceil(stockMoviment.total / stockMoviment.limit)
       : 1,
     limit: stockMoviment?.limit,
+    loading,
 
     setStockMoviment,
     setSearchFilters,

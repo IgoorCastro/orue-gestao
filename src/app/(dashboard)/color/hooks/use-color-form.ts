@@ -5,7 +5,7 @@ export function useColorForm(initialData?: Color) {
   const [name, setName] = useState("");
 
   useEffect(() => {
-    if (initialData) setName(initialData.name)
+    initialData && setName(initialData.name)
   }, [initialData])
 
   return {

@@ -3,7 +3,6 @@
 
 import { ProductSize } from "../../enum/product-size";
 
-
 export const PRODUCT_SIZE_LABELS: Record<ProductSize, string> = {
     PP: "PP",
     P: "P",

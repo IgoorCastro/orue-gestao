@@ -1,10 +1,12 @@
+import { StockType } from "@prisma/client";
+import { StockMovimentType } from "../enum/stock-moviment-type";
 import { Store } from "./store";
 
 export type Stock = {
     id: string;
     name: string;
 
-    type: string; // ou enum depois
+    type: StockType; // ou enum depois
     storeId?: string,
     store?: Store,
 

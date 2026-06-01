@@ -1,37 +1,49 @@
 "use client";
 
-import { useState } from "react";
 import { formatDate } from "@/src/ui/utils/format-data";
 import { Dropdown } from "@/src/ui/components/shared/ui/dropdown-menu";
 import { StockMovimentFilteredDto } from "@/src/ui/types/stock-moviment-filters";
-import { mapMovimentType } from "@/src/ui/utils/map-moviment-type";
 import { useStockMovimentFilterDependencies } from "./hooks/use-stock-moviment-filter-dependencies";
 import { useStockMoviment } from "./hooks/use-stock-moviment";
 import { FilterModal } from "@/src/ui/components/shared/common/filter-modal";
 import { StockMovimentFilterForm } from "@/src/ui/components/shared/filters/stock-moviment-filter-form";
 import { FilterBadges } from "@/src/ui/components/shared/common/filter-badges";
-import { mapStockMovimentType } from "@/src/ui/utils/map-stock-moviment-type";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/ui/components/ui/table";
 import { capitalizeFirstLetter } from "@/src/ui/utils/capitalize-first-letter";
 import { GenericPagination } from "@/src/app/(dashboard)/product/components/pagination";
+import { STOCK_MOVIMENT_TYPE } from "@/src/ui/constants/labels/stock-moviment-type-labels";
+import { StockMovimentType } from "@/src/ui/enum/stock-moviment-type";
+import { useStockMovimentPageState } from "./hooks/use-stock-moviment-page-state";
+import DefaultLoading from "../ui/loading-default";
+import { PRODUCT_SIZE_LABELS } from "@/src/ui/constants/labels/product-size-labels";
 
 export default function AdminStockMovimentsPage() {
-  const [openFilterModal, setOpenFilterModal] = useState(false);
 
-  // Hook dependencias para filtro
-  const { stocks, users } = useStockMovimentFilterDependencies();
-
-  // Hook dados da pagina
   const {
     stockMoviment,
     searchFilters,
-
     totalPages,
+    loading,
 
     setSearchFilters,
     handleClearFilters,
     handleRemoveFilter,
   } = useStockMoviment();
+
+  // Hook dependencias para filtro
+  const { 
+    stocks, 
+    users
+  } = useStockMovimentFilterDependencies();
+
+  // estados da pagina
+  const {
+    openFilterModal,
+
+    setOpenFilterModal,
+  } = useStockMovimentPageState();
+
+  loading && <DefaultLoading />
 
   return (
     <div className="max-w-ful h-full flex flex-col items-center p-2 sm:p-6">
@@ -67,7 +79,7 @@ export default function AdminStockMovimentsPage() {
             configs={{
               type: {
                 label: "Tipo",
-                render: (v) => mapStockMovimentType(v),
+                render: (v: StockMovimentType) => STOCK_MOVIMENT_TYPE[v],
               },
               quantity: { label: "Qnt" },
               fromStockId: {
@@ -152,12 +164,12 @@ export default function AdminStockMovimentsPage() {
                 <TableRow key={sm.id} className="hover:bg-muted/40 transition-colors">
                   {/* Tipo: Estilizado com badge sutil */}
                   <TableCell className="pl-10 py-4 font-medium">
-                    <span className="text-foreground/70">{mapMovimentType(sm.type)}</span>
+                    <span className="text-foreground/70">{STOCK_MOVIMENT_TYPE[sm.type]}</span>
                   </TableCell>
 
                   {/* Produto */}
                   <TableCell className="px-6 py-4 capitalize">
-                    {sm.productStock?.product?.name} - {sm.productStock?.product?.size}
+                    {sm.productStock?.product?.name}  {sm.productStock.product.size && ' - ' + PRODUCT_SIZE_LABELS[sm.productStock.product.size] }
                   </TableCell>
 
                   {/* Origem */}

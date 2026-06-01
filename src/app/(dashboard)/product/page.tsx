@@ -5,7 +5,6 @@ import { Product } from "@/src/ui/types/product";
 import { CrudModal } from "@/src/ui/components/shared/crud/crud-modal";
 import { ProductForm } from "@/src/ui/components/shared/forms/product-form";
 import { useProductFilterDependencies } from "./hooks/use-product-filter-dependencies";
-import { mapProductType } from "@/src/ui/utils/map-product-type";
 import { FilterModal } from "@/src/ui/components/shared/common/filter-modal";
 import { ProductFilterForm } from "@/src/ui/components/shared/filters/product-filter-form";
 import { FilterBadges } from "@/src/ui/components/shared/common/filter-badges";
@@ -20,6 +19,9 @@ import DefaultLoading from "@/src/ui/components/shared/ui/loading-default";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/ui/components/ui/table";
 import { CustomButton } from "@/src/ui/components/shared/ui/button";
 import { Dropdown } from "@/src/ui/components/shared/ui/dropdown-menu";
+import { PRODUCT_TYPE_LABELS } from "@/src/ui/constants/labels/product-type-labels";
+import { ProductType } from "@/src/ui/enum/product-type";
+import { PRODUCT_SIZE_LABELS } from "@/src/ui/constants/labels/product-size-labels";
 
 export default function ProductsPage() {
   // hook responsável por buscar dados (para a tabela),
@@ -102,7 +104,7 @@ export default function ProductsPage() {
           configs={{
             name: { label: "Busca" },
             barcode: { label: "Cód" },
-            type: { label: "Tipo", render: (v) => mapProductType(v) },
+            type: { label: "Tipo", render: (v: ProductType) => PRODUCT_TYPE_LABELS[v] },
             size: { label: "Tam" },
             colors: { label: "Cor" },
             materials: { label: "Mat" },
@@ -205,7 +207,7 @@ export default function ProductsPage() {
                     className="px-6 py-4 text-center font-semibold"
                     onClick={() => openItemDetails(product)}
                   >
-                    {product.size}
+                    {product.size && PRODUCT_SIZE_LABELS[product.size]}
                   </TableCell>
 
                   {/* Preço formatado */}
@@ -222,7 +224,7 @@ export default function ProductsPage() {
                     onClick={() => openItemDetails(product)}
                   >
                     <span className="bg-secondary/50 px-2 py-1 rounded text-xs">
-                      {mapProductType(product.type)}
+                      {PRODUCT_TYPE_LABELS[product.type]}
                     </span>
                   </TableCell>
 

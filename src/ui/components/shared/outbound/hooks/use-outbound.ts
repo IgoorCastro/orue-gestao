@@ -55,16 +55,14 @@ export function useOutbound() {
                 .then((res) => {
                     // Filtramos apenas produtos que possuem saldo para saída
                     setAvaliableProductStocks(res.data.filter(ps => ps.quantity > 0));
-                    setLoading(false);
                 })
-                .catch((err) => feedback.error(err));
+                .catch((err) => feedback.error(err))
+                .finally(() => setLoading(false))
         }, 500);
-
         return () => {
             clearTimeout(handler);
             setLoading(false);
         };
-
     }, [fromStock, searchProduct]);
 
     const handleAddItem = () => {

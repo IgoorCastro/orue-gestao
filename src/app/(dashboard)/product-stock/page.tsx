@@ -11,6 +11,7 @@ import { useProductStockFilterDependencies } from "./hooks/use-product-stock-fil
 import DefaultLoading from "@/src/ui/components/shared/ui/loading-default";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/src/ui/components/ui/table";
 import { ActionButtons } from "@/src/ui/components/shared/actions/data-action";
+import { formatCurrency } from "@/src/ui/utils/format-currency";
 
 export default function UsersPage() {
   const [openFilterModal, setOpenFilterModal] = useState<boolean>(false);
@@ -27,7 +28,6 @@ export default function UsersPage() {
     handleClearFilters,
     handleRemoveFilter,
     calcTotalProductValueInStock,
-    formatNumberBRL,
     handleConfirmdDeactivation,
     handleRestoreProductStock,
     isDisableProductStock,
@@ -179,7 +179,7 @@ export default function UsersPage() {
               </TableCell>
 
               <TableCell className="py-5 text-lg font-bold text-center text-primary">
-                {formatNumberBRL(totalStockValue)}
+                {formatCurrency(totalStockValue)}
               </TableCell>
             </TableRow>
           </TableFooter>

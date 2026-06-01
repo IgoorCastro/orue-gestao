@@ -1,6 +1,7 @@
+import { feedback } from "@/src/ui/lib/feedback";
 import { ProductComponentService } from "@/src/ui/services/product-component.service";
 import { ProductComponent } from "@/src/ui/types/product-component";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 const pcService = new ProductComponentService("/productComponent");
 
@@ -10,16 +11,18 @@ export function useProductDetailsDependencies(filter?: { parentId: string }) {
 
     useEffect(() => {
         // só faz a request se tiver filtro
+        setLoading(true);
         if (filter) {
-            async function load() {
-                const pcs = await pcService.findAll(filter);
-
-                setProductComponents(pcs);
-                setLoading(false);
-            }
-            load();
-        } else
-            setLoading(false)
+            pcService.findAll(filter)
+                .then((res) => {
+                    setProductComponents(res);
+                    setLoading(false);
+                })
+                .catch(feedback.error)
+                .finally(() => setLoading(false))
+        }else
+            setLoading(false);
+        
     }, [])
 
     return {

@@ -13,8 +13,11 @@ import { Plus, Trash2, ArrowUpRight } from "lucide-react";
 
 // Services, Types e Hooks
 import { useOutbound } from "./hooks/use-outbound";
-import { useStockMovimentDependencies } from "@/src/app/(dashboard)/stock-moviment/hooks/use-stock-moviment-dependencies";
 import { useBarCodeReader } from "@/src/ui/hooks/use-barcode-reader";
+import { useStockMovimentDependencies } from "../stock-moviment/hooks/use-stock-moviment-dependencies";
+import { StockType } from "@/src/ui/enum/stock-type";
+import { capitalizeFirstLetter } from "@/src/ui/utils/capitalize-first-letter";
+import { PRODUCT_SIZE_LABELS } from "@/src/ui/constants/labels/product-size-labels";
 
 export default function OutboundAdminPage() {
 
@@ -80,7 +83,7 @@ export default function OutboundAdminPage() {
                                 {avaliableStocks.map((value) => (
                                     <SelectItem key={value.id} value={value.id}>
                                         {value.store?.name ? `${value.store.name.toUpperCase()} - ` : ""}
-                                        {value.name && value.type !== "MAIN" ? value.name : "Matriz"}
+                                        {value.name && value.type !== StockType.MAIN ? capitalizeFirstLetter(value.name) : "Matriz"}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -101,7 +104,7 @@ export default function OutboundAdminPage() {
                                 loadingFetch={loadingService}
                                 options={avaliableProductStocks.map((ps) => ({
                                     value: ps.id,
-                                    label: `${ps.product?.name} - ${ps.product?.size} (Disponível: ${ps.quantity})`,
+                                    label: `${ps.product?.name}  ${ps.product.size ? ' - ' + PRODUCT_SIZE_LABELS[ps.product.size] : ""} (Disponível: ${ps.quantity})`,
                                     data: ps,
                                 }))}
                                 value={productStockId}

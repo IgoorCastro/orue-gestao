@@ -116,7 +116,6 @@ export class PrismaProductStockRepository implements ProductStockRepository {
     // find com filtro
     // retorna uma lista de produtos em estoque e pode ser filtrada
     async findMany(filters: ProductStockFilters) {
-        console.log("filters: ", filters)
         const where: Prisma.ProductStockWhereInput = {
             productId: filters.productId,
             stockId: filters.stockId,
@@ -169,6 +168,9 @@ export class PrismaProductStockRepository implements ProductStockRepository {
             }),
             this.prisma.productStock.count({ where })
         ]);
+
+        
+        console.log(data.map(ps => this.toDomainWithInclude(ps)))
 
         return {
             data: data.map(ps => this.toDomainWithInclude(ps)),
@@ -279,7 +281,7 @@ export class PrismaProductStockRepository implements ProductStockRepository {
             modelId: prismaProduct.modelId ?? undefined,
 
             type: this.mapProductType(prismaProduct.type),
-            size: this.mapProductSize(prismaProduct.size),
+            size: prismaProduct.size as ProductSize,
 
             barcode: prismaProduct.barcode ?? undefined,
             mlProductId: prismaProduct.mlProductId ?? undefined,
@@ -359,27 +361,6 @@ export class PrismaProductStockRepository implements ProductStockRepository {
                 return StockType.STORE;
             default:
                 throw new Error(`Invalid StockType: ${type}`);
-        }
-    }
-
-
-
-    private mapProductSize(size: string | null): ProductSize | undefined {
-        if (!size) return undefined;
-        switch (size) {
-            case "P":
-                return ProductSize.P;
-            case "M":
-                return ProductSize.M;
-            case "G":
-                return ProductSize.G;
-            case "GG":
-                return ProductSize.GG;
-            case "XG":
-                return ProductSize.XG;
-            default:
-                console.warn(`Tamanho desconhecido encontrado: ${size}`);
-                return undefined;
         }
     }
 }

@@ -14,8 +14,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useTrasnfer } from "./hooks/use-transfer";
 import DefaultLoading from "@/src/ui/components/shared/ui/loading-default";
 import { ProductSearchSelect } from "@/src/ui/components/shared/ui/searchable-select";
-import { useStockMovimentDependencies } from "@/src/app/(dashboard)/stock-moviment/hooks/use-stock-moviment-dependencies";
 import { useBarCodeReader } from "@/src/ui/hooks/use-barcode-reader";
+import { useStockMovimentDependencies } from "../stock-moviment/hooks/use-stock-moviment-dependencies";
 
 export default function TransferManagePage() {
     // Dependências de estoques (Origem e Destino)

@@ -1,3 +1,5 @@
+import { ProductSize } from "../enum/product-size";
+import { ProductType } from "../enum/product-type";
 import { Color } from "./color";
 import { Material } from "./material";
 
@@ -20,9 +22,9 @@ export type ProductMaterial = Readonly<{
 export type Product = {
     id: string;
     name: string;
-    type: string; // ou enum depois
+    type: ProductType;
     price: number;
-    size?: string;
+    size?: ProductSize;
 
     modelId?: string;
     materialIds?: string[];

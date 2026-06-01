@@ -13,12 +13,11 @@ export function useModel() {
     const [refreshSignal, setRefreshSignal] = useState<boolean>(false);
 
     useEffect(() => {
+        setLoading(true);
         modelService.findAll({ withDeleted: true })
-            .then((res) => {
-                setModels(res);
-                setLoading(false);
-            })
-            .catch(console.error);
+            .then((res) => setModels(res))
+            .catch(feedback.error)
+            .finally(() => setLoading(false))
     }, [refreshSignal]);
 
     const handleConfirmdDeactivation = (modelId: string) => {
@@ -30,10 +29,8 @@ export function useModel() {
                 feedback.success("Modelo desativada!");
                 setRefreshSignal(prev => !prev);
             })
-            .catch(err => {
-                feedback.error(err);
-                setLoading(false);
-            });
+            .catch(feedback.error)
+            .finally(() => setLoading(false))
     }
 
     const handleRestoreProduct = (modelId: string) => {

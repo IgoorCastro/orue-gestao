@@ -4,7 +4,7 @@
 import { ProductType } from "../../enum/product-type";
 
 export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
-    PRODUCT : "Produto`",
+    PRODUCT : "Produto",
     KIT : "Kit",
     PACKAGE : "Pacote",
 }

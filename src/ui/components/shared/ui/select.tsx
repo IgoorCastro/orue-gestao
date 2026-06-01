@@ -33,7 +33,7 @@ export function GenericSelect({ title, items, onChange, value, placeholder }: Pr
         <SelectGroup>
           <SelectLabel>{title}</SelectLabel>
           {items.map(item => (
-            <SelectItem 
+            <SelectItem
                 key={item.value}
                 value={item.value}
             >

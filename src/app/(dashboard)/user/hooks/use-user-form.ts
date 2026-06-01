@@ -1,11 +1,6 @@
+import { UserRole } from "@/src/domain/enums/user-role.enum";
 import { User } from "@/src/ui/types/user";
 import { useEffect, useState } from "react";
-
-export enum UserRole {
-    ADMIN = "ADMIN",
-    MANAGER = "MANAGER",
-    OPERATOR = "OPERATOR",
-}
 
 export function useUserForm(initialData?: User) {
     const [name, setName] = useState<string>("");
@@ -14,7 +9,8 @@ export function useUserForm(initialData?: User) {
     const [role, setRole] = useState<UserRole>(initialData?.role as UserRole ?? UserRole.OPERATOR);
     const [showPassword, setShowPassword] = useState(false);
 
-    useEffect(() => {initialData && mapUser(initialData);
+    useEffect(() => {
+        initialData && mapUser(initialData);
     }, [initialData]);
 
     const mapUser = (initialData: User) => {

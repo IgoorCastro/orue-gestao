@@ -1,10 +1,12 @@
 import { Material } from "@/src/ui/types/material";
 import { useEffect, useState } from "react";
 
-export function useMaterialForm(initalData?: Material) {
+export function useMaterialForm(initialData?: Material) {
   const [name, setName] = useState("");
 
-  useEffect(() => {initalData && setName(initalData.name)}, [initalData])
+  useEffect(() => {
+    initialData && setName(initialData.name)
+  }, [initialData])
 
   return {
     // fields

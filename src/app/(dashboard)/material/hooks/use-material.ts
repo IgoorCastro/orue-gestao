@@ -13,12 +13,13 @@ export function useMaterial() {
     const [refreshSignal, setRefreshSignal] = useState<boolean>(false);
 
     useEffect(() => {
+        setLoading(true);
         materialService.findAll({ withDeleted: true })
             .then((res) => {
                 setMaterials(res);
-                setLoading(false);
             })
-            .catch(console.error);
+            .catch(feedback.error)
+            .finally(() => setLoading(false));
     }, [refreshSignal]);
 
     const handleConfirmdDeactivation = (modelId: string) => {
@@ -30,10 +31,8 @@ export function useMaterial() {
                 feedback.success("Material desativada!");
                 setRefreshSignal(prev => !prev);
             })
-            .catch(err => {
-                feedback.error(err);
-                setLoading(false);
-            });
+            .catch(feedback.error)
+            .finally(() => setLoading(false));
     }
 
     const handleRestoreMaterial = (modelId: string) => {
@@ -45,10 +44,8 @@ export function useMaterial() {
                 feedback.success("Material reativado!");
                 setRefreshSignal(prev => !prev);
             })
-            .catch(err => {
-                feedback.error(err);
-                setLoading(false);
-            })
+            .catch(feedback.error)
+            .finally(() => setLoading(false));
     }
 
     const isDisableMaterial = (deletedAt?: string) => {
@@ -58,7 +55,7 @@ export function useMaterial() {
     return {
         materials,
         loading,
-        
+
         setRefreshSignal,
 
         handleConfirmdDeactivation,

@@ -54,13 +54,14 @@ export function useTrasnfer() {
         }
 
         const handler = setTimeout(() => {
-            psService.findByStock({ stockId: fromStock, productName: searchProduct }) // TA DANDO ERRO AQUI
+            psService.findByStock({ stockId: fromStock, productName: searchProduct })
                 .then((res) => {
                     // filtrando apenas produtos que possuem saldo para saída
                     setAvaliableProductStocks(res.data.filter(ps => ps.quantity > 0));
                     setLoading(false);
                 })
-                .catch((err) => feedback.error(err));
+                .catch(feedback.error)
+                .finally(() => setLoading(false));
         }, 500);
 
         return () => {

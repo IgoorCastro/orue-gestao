@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 export function useStoreForm(initialData?: Store) {
   const [name, setName] = useState("");
 
-  useEffect(() => {initialData && setName(initialData.name.toUpperCase());
+  useEffect(() => {
+    initialData && setName(initialData.name.toUpperCase());
   }, [initialData]);
 
   return {

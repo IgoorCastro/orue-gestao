@@ -13,12 +13,13 @@ export function useColor() {
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
+        setLoading(true);
         colorService.findAll({ withDeleted: true })
             .then((res) => {
                 setColors(res);
-                setLoading(false);
             })
-            .catch(console.error);
+            .catch(console.error)
+            .finally(() => setLoading(false))
     }, [refreshSignal]);
 
     const handleConfirmdDeactivation = (colorId: string) => {
@@ -28,12 +29,12 @@ export function useColor() {
             .then(() => {
                 feedback.dismiss();
                 feedback.success("Cor desativada!");
+            })
+            .catch(feedback.error)
+            .finally(() => {
+                setLoading(false);
                 setRefreshSignal(prev => !prev);
             })
-            .catch(err => {
-                feedback.error(err);
-                setLoading(false);
-            });
     }
 
     const handleRestoreColor = (colorId: string) => {
@@ -43,15 +44,15 @@ export function useColor() {
             .then(() => {
                 feedback.dismiss();
                 feedback.success("Cor reativada!");
-                setRefreshSignal(prev => !prev);
             })
-            .catch(err => {
-                feedback.error(err);
+            .catch(feedback.error)
+            .finally(() => {
+                setRefreshSignal(prev => !prev);
                 setLoading(false);
             })
     }
 
-    const isDisableColor = (deletedAt?: string) =>  !!deletedAt;
+    const isDisableColor = (deletedAt?: string) => !!deletedAt;
 
     return {
         // campos

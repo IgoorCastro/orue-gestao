@@ -1,13 +1,8 @@
+import { StockMovimentType } from "@/src/ui/enum/stock-moviment-type";
 import { Product } from "@/src/ui/types/product";
 import { ProductStock } from "@/src/ui/types/product-stock";
 import { StockMoviment } from "@/src/ui/types/stock-moviment";
 import { useEffect, useState } from "react";
-
-export enum StockMovimentType {
-  INBOUND = "INBOUND",
-  OUTBOUND = "OUTBOUND",
-  TRANSFER = "TRANSFER",
-}
 
 export function useStockMovimentForm(initialData?: StockMoviment) {
   const [product, setProduct] = useState("");

@@ -1,10 +1,11 @@
+import { StockMovimentType } from "../enum/stock-moviment-type";
 import { ProductStock } from "./product-stock";
 import { Stock } from "./stock";
 import { User } from "./user";
 
 export type StockMoviment = {
     id: string;
-    type: string; // ou enum depois
+    type: StockMovimentType; // ou enum depois
     unitPrice: number,
     totalPrice: number,
     quantity: number,

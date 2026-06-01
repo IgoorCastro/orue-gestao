@@ -2,7 +2,6 @@
 
 import { User } from "@/src/ui/types/user";
 import { Plus } from "lucide-react";
-import { mapUserType } from "@/src/ui/utils/map-user-type";
 import { useUserPageState } from "./hooks/use-user-page-state";
 import { useUser } from "./hooks/use-user";
 import { CrudModal } from "@/src/ui/components/shared/crud/crud-modal";
@@ -13,6 +12,7 @@ import { ActionButtons } from "@/src/ui/components/shared/actions/data-action";
 import { ResponsiveModal } from "@/src/ui/components/shared/common/reponsive-modal";
 import { UserForm } from "@/src/ui/components/shared/forms/user-form";
 import { UserDetailsForm } from "@/src/ui/components/shared/forms/user-details-form";
+import { USER_ROLE_LABELS } from "@/src/ui/constants/labels/user-role-labels";
 
 export default function UsersPage() {
   const {
@@ -91,7 +91,7 @@ export default function UsersPage() {
                     className="px-6 py-4 text-md text-muted-foreground uppercase text-xs tracking-wider"
                     onClick={() => openItemDetails(user)}
                   >
-                    {mapUserType(user.role)}
+                    {USER_ROLE_LABELS[user.role]}
                   </TableCell>
 
                   {/* Coluna Nickname / Ações (Seguindo sua lógica de centralização se necessário) */}

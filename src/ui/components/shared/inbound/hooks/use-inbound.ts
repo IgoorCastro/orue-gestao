@@ -18,6 +18,7 @@ type InboundItemList = {
 }
 
 const sm = new StockMovimentService("/stockMoviment");
+const productService = new ProductService("/product");
 
 export function useInbound() {
     // Estados para a lista "carrinho"
@@ -40,17 +41,15 @@ export function useInbound() {
     // usuário do contexto
     const user = useUser();
 
-    // Memoizar a service para evitar múltiplas instâncias
-    const productService = useMemo(() => new ProductService("/product"), []);
-
     useEffect(() => {
         setLoading(true)
         const handler = setTimeout(() => {
             productService.findAll({ name: searchProduct })
                 .then(res => {
                     setDefaultList(res.data);
-                    setLoading(false);
-                });
+                })
+                .catch(feedback.error)
+                .finally(() => setLoading(false));
         }, 500);
 
         return () => {
@@ -97,7 +96,6 @@ export function useInbound() {
         }
 
         if (!toStock) {
-            
             feedback.error("Selecione um estoque de destino antes de adicionar produtos");
             return;
         }
@@ -111,7 +109,7 @@ export function useInbound() {
             // Produto já existe > soma quantidade
             const updatedItems = [...items];
             updatedItems[existingItemIndex].quantity += quantity;
-            updatedItems[existingItemIndex].totalPrice = 
+            updatedItems[existingItemIndex].totalPrice =
                 updatedItems[existingItemIndex].unitPrice * updatedItems[existingItemIndex].quantity;
             setItems(updatedItems);
             feedback.success(`${product.name} - Quantidade aumentada`);
@@ -152,7 +150,7 @@ export function useInbound() {
         if (items.length === 0) return;
 
         feedback.loading("Processando entrada de produtos...");
-        
+
         // verifica se há um usuario conectado
         if (!user) {
             feedback.error("Usuário não autenticado. Faça login para registrar movimentações.");
@@ -160,7 +158,6 @@ export function useInbound() {
         }
 
         try {
-
             // Aqui usamos Promise.all para salvar todos os itens da lista
             const promises = items.map(item =>
                 sm.create({
@@ -177,9 +174,9 @@ export function useInbound() {
             await Promise.all(promises);
 
             // Sucesso!
-            feedback.dismiss(); // Remove o loading
+            feedback.dismiss();
             feedback.success(`Entrada de ${items.length} itens realizada com sucesso!`);
-            clearStateFull();
+            clearStateFull(); // limpa os campos
         } catch (error) {
             feedback.dismiss();
             feedback.error(error); // O utilitário já trata a mensagem de erro da API

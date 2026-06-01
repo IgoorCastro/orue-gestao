@@ -3,7 +3,7 @@ import { Label } from "@/src/ui/components/ui/label";
 import { format } from "date-fns";
 import { Stock } from "@/src/ui/types/stock";
 import DefaultLoading from "../ui/loading-default";
-import { mapStockType } from "@/src/ui/utils/map-stock-type";
+import { STOCK_TYPE_LABELS } from "@/src/ui/constants/labels/stock-type-labels";
 
 type StockDetailsFormProps = {
   stock: Stock;
@@ -38,7 +38,7 @@ export function StockDetailsForm({ stock }: StockDetailsFormProps) {
         <InfoField label="Nome do Estoque" value={stock.name[0].toUpperCase() + stock.name.slice(1)} />
 
         <InfoField label="Loja Vinculada" value={stock.store?.name.toUpperCase()} />
-        <InfoField label="Tipo" value={mapStockType(stock.type)} />
+        <InfoField label="Tipo" value={STOCK_TYPE_LABELS[stock.type]} />
       </div>
 
       <Separator />

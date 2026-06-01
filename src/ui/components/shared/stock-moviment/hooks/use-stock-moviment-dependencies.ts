@@ -5,25 +5,18 @@ import { useEffect, useMemo, useState } from "react";
 import { Stock } from "@/src/ui/types/stock";
 import { StockService } from "@/src/ui/services/stock.service";
 
+const stockService = new StockService("/stock");
+
 export function useStockMovimentDependencies() {
     const [stocks, setStocks] = useState<Stock[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const stockService = useMemo(() => new StockService("/stock"), []);
-
     useEffect(() => {
-        async function load() {
-            try {
-                const stockRes = await stockService.findAll();
-                setStocks(stockRes);
-            } catch (error) {
-                console.error("Erro ao carregar dependências", error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        load();
+        setLoading(true);
+        stockService.findAll()
+            .then(setStocks)
+            .catch(console.error)
+            .finally(() => setLoading(false))
     }, []);
 
     return {

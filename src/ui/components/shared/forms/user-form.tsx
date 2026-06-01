@@ -9,8 +9,9 @@ import { Separator } from "@/src/ui/components/ui/separator";
 import { Button } from "@/src/ui/components/ui/button";
 import { Eye, EyeOff, Save } from "lucide-react";
 import { feedback } from "@/src/ui/lib/feedback";
-import { UserRole, useUserForm } from "@/src/app/(dashboard)/user/hooks/use-user-form";
+import { useUserForm } from "@/src/app/(dashboard)/user/hooks/use-user-form";
 import { useMemo } from "react";
+import { UserRole } from "@/src/ui/enum/user-role.enum";
 
 type Props = {
     onSuccess: (user: User) => void;

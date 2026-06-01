@@ -1,16 +1,11 @@
 // hook responsavel pelo gerenciamento das inputs
 // e do envio dos dados para o service
 
+import { StockType } from "@/src/ui/enum/stock-type";
 import { feedback } from "@/src/ui/lib/feedback";
 import { StockService } from "@/src/ui/services/stock.service";
 import { Stock } from "@/src/ui/types/stock";
-import { Store } from "@/src/ui/types/store";
 import { useEffect, useMemo, useState } from "react";
-
-export enum StockType {
-  MAIN = "MAIN",
-  STORE = "STORE",
-}
 
 type Props = {
   initialData?: Stock
@@ -21,7 +16,6 @@ export function useStockForm({ initialData, onSuccess }: Props) {
   // ESTADOS DE INPUTS
   const [name, setName] = useState<string>("");
   const [storeId, setStoreId] = useState<string>("");
-  const [store, setstore] = useState<Store | null>(null);
   const [type, setType] = useState<StockType>(StockType.STORE);
 
   const stock = useMemo(() => new StockService("/stock"), []);
@@ -33,7 +27,6 @@ export function useStockForm({ initialData, onSuccess }: Props) {
   const mapStock = (initialData: Stock) => {
     setName(initialData.name);
     setStoreId(initialData.storeId ?? "");
-    setstore(initialData.store ?? null)
     setType(initialData.type as StockType)
   }
 

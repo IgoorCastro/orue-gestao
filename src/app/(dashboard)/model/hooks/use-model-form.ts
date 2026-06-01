@@ -5,7 +5,7 @@ export function useModelForm(initialData?: Model) {
   const [name, setName] = useState("");
 
   useEffect(() => {
-    if(initialData) setName(initialData.name);
+    initialData && setName(initialData.name);
   }, [initialData])
 
   return {

@@ -10,8 +10,9 @@ import DefaultLoading from "@/src/ui/components/shared/ui/loading-default";
 import { ProductSearchSelect } from "@/src/ui/components/shared/ui/searchable-select";
 import { Save, Plus, Trash2 } from "lucide-react";
 import { useInbound } from "./hooks/use-inbound";
-import { useStockMovimentInboundDependencies } from "@/src/app/(dashboard)/stock-moviment/hooks/use-stock-moviment-inbound-dependencies";
 import { useBarCodeReader } from "@/src/ui/hooks/use-barcode-reader";
+import { useStockMovimentInboundDependencies } from "./hooks/use-stock-moviment-inbound-dependencies";
+import { PRODUCT_SIZE_LABELS } from "@/src/ui/constants/labels/product-size-labels";
 
 export default function InboundAdminPage() {
     const {
@@ -94,7 +95,7 @@ export default function InboundAdminPage() {
                                 loadingFetch={loadingService}
                                 options={defaultList.map((p) => ({
                                     value: p.id,
-                                    label: `${p.name} ${p.size ? ' - ' + p.size : ''}`,
+                                    label: `${p.name} ${p.size ? ' - ' + PRODUCT_SIZE_LABELS[p.size] : ''}`,
                                     data: p,
                                 }))}
                                 value={productId}
